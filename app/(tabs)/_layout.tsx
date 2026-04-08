@@ -44,8 +44,18 @@ export default function TabLayout() {
         name="trips"
         options={{
           title: 'Trips',
+          headerShown: false,
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="list" size={size} color={color} />
+            <Ionicons name="car" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="favourites"
+        options={{
+          title: 'Favourites',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="star" size={size} color={color} />
           ),
         }}
       />

@@ -2,24 +2,23 @@ import { useMemo, useState, useCallback } from 'react';
 import { View, Text, ScrollView } from 'react-native';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { Colors } from '@/constants/Colors';
 import { Fonts } from '@/constants/Typography';
 import { useAppStore } from '@/store/useAppStore';
 import { TripCard } from '@/components/trip-card';
 import { PurposeFilter, type FilterOption } from '@/components/purpose-filter';
-import { TripEditModal } from '@/components/trip-edit-modal';
-import { formatDistanceValue, getUnitLabel, calculateDeduction } from '@/utils/helpers';
-import type { Trip } from '@/store/types';
+import { formatDistanceValue, getUnitLabel } from '@/utils/helpers';
 
 export default function TripsScreen() {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const trips = useAppStore((s) => s.trips);
   const deleteTrip = useAppStore((s) => s.deleteTrip);
-  const preferences = useAppStore((s) => s.preferences);
+  const settings = useAppStore((s) => s.settings);
   const [filter, setFilter] = useState<FilterOption>('All');
-  const [editingTrip, setEditingTrip] = useState<Trip | null>(null);
 
-  const unit = preferences.distanceUnit;
+  const unit = settings.distanceUnit;
 
   const filteredTrips = useMemo(() => {
     if (filter === 'All') return trips;
@@ -31,15 +30,8 @@ export default function TripsScreen() {
     [trips]
   );
 
-  const businessDistance = useMemo(
-    () => trips.filter((t) => t.purpose === 'Business').reduce((acc, t) => acc + t.distance, 0),
-    [trips]
-  );
-
   const handleDelete = useCallback(
-    (id: string) => {
-      deleteTrip(id);
-    },
+    (id: string) => deleteTrip(id),
     [deleteTrip]
   );
 
@@ -61,7 +53,6 @@ export default function TripsScreen() {
               fontSize: 26,
               color: Colors.textPrimary,
               textAlign: 'center',
-              marginBottom: 4,
             }}
           >
             Trips History
@@ -105,19 +96,6 @@ export default function TripsScreen() {
           >
             {formatDistanceValue(totalDistance, unit)} {getUnitLabel(unit)}
           </Text>
-          {businessDistance > 0 && (
-            <Text
-              selectable
-              style={{
-                fontFamily: Fonts.regular,
-                fontSize: 13,
-                color: Colors.accent,
-                fontVariant: ['tabular-nums'],
-              }}
-            >
-              Business deduction: ${calculateDeduction(businessDistance, preferences.mileageRate, unit)}
-            </Text>
-          )}
         </Animated.View>
 
         {/* Filter */}
@@ -164,7 +142,8 @@ export default function TripsScreen() {
                 maxWidth: 260,
               }}
             >
-              Trips will appear here once your device detects movement above 10 km/h.
+              Trips will appear here once your device detects movement above 10
+              km/h.
             </Text>
           </Animated.View>
         ) : (
@@ -175,22 +154,13 @@ export default function TripsScreen() {
                 trip={trip}
                 unit={unit}
                 index={index}
-                onPress={() => {
-                  setEditingTrip(trip);
-                }}
+                onPress={() => router.push(`/trips/${trip.id}`)}
                 onDelete={() => handleDelete(trip.id)}
               />
             ))}
           </View>
         )}
       </ScrollView>
-
-      {/* Edit modal */}
-      <TripEditModal
-        trip={editingTrip}
-        visible={editingTrip !== null}
-        onClose={() => setEditingTrip(null)}
-      />
     </View>
   );
 }

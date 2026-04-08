@@ -1,29 +1,58 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import type { Trip, ActiveTrip, Preferences, TripPurpose } from './types';
-import { generateId, getDefaultPreferences, isBusinessHours } from '@/utils/helpers';
+import type {
+  Trip,
+  ActiveTrip,
+  Settings,
+  FavouriteLocation,
+  OdometerRecord,
+  LatLng,
+} from './types';
+import {
+  generateId,
+  getDefaultSettings,
+  isWithinBusinessHours,
+  getWeekId,
+} from '@/utils/helpers';
 
 interface TripsSlice {
   trips: Trip[];
   addTrip: (trip: Omit<Trip, 'id' | 'createdAt'>) => void;
   deleteTrip: (id: string) => void;
   updateTrip: (id: string, updates: Partial<Trip>) => void;
+  applyOdometerScaling: (weekId: string, scalingFactor: number) => void;
 }
 
 interface ActiveTripSlice {
   activeTrip: ActiveTrip;
   startTrip: (lat: number, lng: number) => void;
   updateActiveTrip: (updates: Partial<ActiveTrip>) => void;
-  endTrip: () => void;
+  addRoutePoint: (point: LatLng) => void;
+  endTrip: (startSuburb: string, endSuburb: string) => void;
 }
 
-interface PreferencesSlice {
-  preferences: Preferences;
-  updatePreferences: (updates: Partial<Preferences>) => void;
+interface SettingsSlice {
+  settings: Settings;
+  updateSettings: (updates: Partial<Settings>) => void;
 }
 
-export type AppStore = TripsSlice & ActiveTripSlice & PreferencesSlice;
+interface FavouritesSlice {
+  favourites: FavouriteLocation[];
+  addFavourite: (fav: Omit<FavouriteLocation, 'id' | 'createdAt'>) => void;
+  deleteFavourite: (id: string) => void;
+}
+
+interface OdometerSlice {
+  odometerRecords: OdometerRecord[];
+  addOdometerRecord: (record: OdometerRecord) => void;
+}
+
+export type AppStore = TripsSlice &
+  ActiveTripSlice &
+  SettingsSlice &
+  FavouritesSlice &
+  OdometerSlice;
 
 const defaultActiveTrip: ActiveTrip = {
   isTracking: false,
@@ -31,20 +60,22 @@ const defaultActiveTrip: ActiveTrip = {
   currentDistance: 0,
   currentSpeed: 0,
   lastPosition: null,
+  routePoints: [],
   stationaryStartTime: null,
+  stationaryPosition: null,
 };
 
 export const useAppStore = create<AppStore>()(
   persist(
     (set, get) => ({
-      // Preferences
-      preferences: getDefaultPreferences(),
-      updatePreferences: (updates) =>
+      // ── Settings ──────────────────────────────────────
+      settings: getDefaultSettings(),
+      updateSettings: (updates) =>
         set((state) => ({
-          preferences: { ...state.preferences, ...updates },
+          settings: { ...state.settings, ...updates },
         })),
 
-      // Trips
+      // ── Trips ─────────────────────────────────────────
       trips: [],
       addTrip: (tripData) =>
         set((state) => ({
@@ -63,10 +94,24 @@ export const useAppStore = create<AppStore>()(
         })),
       updateTrip: (id, updates) =>
         set((state) => ({
-          trips: state.trips.map((t) => (t.id === id ? { ...t, ...updates } : t)),
+          trips: state.trips.map((t) =>
+            t.id === id ? { ...t, ...updates } : t
+          ),
+        })),
+      applyOdometerScaling: (weekId, scalingFactor) =>
+        set((state) => ({
+          trips: state.trips.map((t) =>
+            t.weekId === weekId
+              ? {
+                  ...t,
+                  scalingFactor,
+                  distance: t.rawDistance * scalingFactor,
+                }
+              : t
+          ),
         })),
 
-      // Active Trip
+      // ── Active Trip ───────────────────────────────────
       activeTrip: defaultActiveTrip,
       startTrip: (lat, lng) => {
         set({
@@ -76,7 +121,9 @@ export const useAppStore = create<AppStore>()(
             currentDistance: 0,
             currentSpeed: 0,
             lastPosition: { lat, lng },
+            routePoints: [{ lat, lng }],
             stationaryStartTime: null,
+            stationaryPosition: null,
           },
         });
       },
@@ -84,35 +131,73 @@ export const useAppStore = create<AppStore>()(
         set((state) => ({
           activeTrip: { ...state.activeTrip, ...updates },
         })),
-      endTrip: () => {
-        const { activeTrip, preferences, addTrip } = get();
+      addRoutePoint: (point) =>
+        set((state) => ({
+          activeTrip: {
+            ...state.activeTrip,
+            routePoints: [...state.activeTrip.routePoints, point],
+          },
+        })),
+      endTrip: (startSuburb, endSuburb) => {
+        const { activeTrip, settings, addTrip } = get();
         if (!activeTrip.isTracking || !activeTrip.startTime) return;
 
         const endTime = new Date().toISOString();
         const durationMs =
-          new Date(endTime).getTime() - new Date(activeTrip.startTime).getTime();
+          new Date(endTime).getTime() -
+          new Date(activeTrip.startTime).getTime();
         const durationSec = Math.round(durationMs / 1000);
 
-        const isBusiness = isBusinessHours(preferences.businessHours);
+        const isBusiness =
+          settings.logAllAsBusiness ||
+          isWithinBusinessHours(settings.businessHoursPerDay);
 
         addTrip({
           startTime: activeTrip.startTime,
           endTime,
+          startSuburb,
+          endSuburb,
           distance: activeTrip.currentDistance,
+          rawDistance: activeTrip.currentDistance,
           duration: durationSec,
           purpose: isBusiness ? 'Business' : 'Personal',
-          autoClassified: true,
+          routePoints: activeTrip.routePoints,
+          weekId: getWeekId(new Date(activeTrip.startTime)),
+          scalingFactor: 1.0,
         });
 
         set({ activeTrip: defaultActiveTrip });
       },
+
+      // ── Favourites ────────────────────────────────────
+      favourites: [],
+      addFavourite: (fav) =>
+        set((state) => ({
+          favourites: [
+            ...state.favourites,
+            { ...fav, id: generateId(), createdAt: new Date().toISOString() },
+          ],
+        })),
+      deleteFavourite: (id) =>
+        set((state) => ({
+          favourites: state.favourites.filter((f) => f.id !== id),
+        })),
+
+      // ── Odometer ──────────────────────────────────────
+      odometerRecords: [],
+      addOdometerRecord: (record) =>
+        set((state) => ({
+          odometerRecords: [...state.odometerRecords, record],
+        })),
     }),
     {
-      name: 'miletrack-storage',
+      name: 'mileagetrack-storage',
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (state) => ({
         trips: state.trips,
-        preferences: state.preferences,
+        settings: state.settings,
+        favourites: state.favourites,
+        odometerRecords: state.odometerRecords,
       }),
     }
   )

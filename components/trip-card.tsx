@@ -30,7 +30,6 @@ export function TripCard({ trip, unit, index, onPress, onDelete }: TripCardProps
     .activeOffsetX([-10, 10])
     .failOffsetY([-5, 5])
     .onUpdate((e) => {
-      // Only allow left swipe
       if (e.translationX < 0) {
         translateX.value = Math.max(e.translationX, -deleteWidth - 20);
       }
@@ -53,14 +52,11 @@ export function TripCard({ trip, unit, index, onPress, onDelete }: TripCardProps
 
   const isBusiness = trip.purpose === 'Business';
   const badgeColor = isBusiness ? Colors.businessBadge : Colors.personalBadge;
-
-  const routeLabel = trip.startLocation && trip.endLocation
-    ? `${trip.startLocation} → ${trip.endLocation}`
-    : trip.startLocation || trip.endLocation || 'Unknown Route';
+  const routeLabel = `${trip.startSuburb || 'Unknown'} → ${trip.endSuburb || 'Unknown'}`;
 
   return (
     <Animated.View
-      entering={FadeInUp.delay(index * 60).duration(350)}
+      entering={FadeInUp.delay(Math.min(index * 50, 400)).duration(350)}
       exiting={FadeOut.duration(200)}
       layout={LinearTransition.duration(250)}
       style={{ overflow: 'hidden', borderRadius: 14, borderCurve: 'continuous' }}
@@ -111,8 +107,21 @@ export function TripCard({ trip, unit, index, onPress, onDelete }: TripCardProps
             })}
           >
             {/* Header: date + badge */}
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-              <Text style={{ fontFamily: Fonts.regular, fontSize: 13, color: Colors.textSecondary }}>
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: 8,
+              }}
+            >
+              <Text
+                style={{
+                  fontFamily: Fonts.regular,
+                  fontSize: 13,
+                  color: Colors.textSecondary,
+                }}
+              >
                 {formatTripDate(trip.startTime)}
               </Text>
               <View
@@ -124,7 +133,9 @@ export function TripCard({ trip, unit, index, onPress, onDelete }: TripCardProps
                   borderCurve: 'continuous',
                 }}
               >
-                <Text style={{ fontFamily: Fonts.semiBold, fontSize: 11, color: '#fff' }}>
+                <Text
+                  style={{ fontFamily: Fonts.semiBold, fontSize: 11, color: '#fff' }}
+                >
                   {trip.purpose}
                 </Text>
               </View>
@@ -133,42 +144,42 @@ export function TripCard({ trip, unit, index, onPress, onDelete }: TripCardProps
             {/* Route */}
             <Text
               selectable
-              style={{ fontFamily: Fonts.semiBold, fontSize: 16, color: Colors.textPrimary, marginBottom: 6 }}
+              style={{
+                fontFamily: Fonts.semiBold,
+                fontSize: 16,
+                color: Colors.textPrimary,
+                marginBottom: 6,
+              }}
               numberOfLines={1}
             >
               {routeLabel}
             </Text>
 
             {/* Stats */}
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                <Ionicons name="navigate-outline" size={14} color={Colors.textSecondary} />
-                <Text
-                  selectable
-                  style={{
-                    fontFamily: Fonts.medium,
-                    fontSize: 13,
-                    color: Colors.textSecondary,
-                    fontVariant: ['tabular-nums'],
-                  }}
-                >
-                  {formatDistance(trip.distance, unit)}
-                </Text>
-              </View>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                <Ionicons name="time-outline" size={14} color={Colors.textSecondary} />
-                <Text
-                  selectable
-                  style={{
-                    fontFamily: Fonts.medium,
-                    fontSize: 13,
-                    color: Colors.textSecondary,
-                    fontVariant: ['tabular-nums'],
-                  }}
-                >
-                  {formatDuration(trip.duration)}
-                </Text>
-              </View>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <Text
+                selectable
+                style={{
+                  fontFamily: Fonts.medium,
+                  fontSize: 13,
+                  color: Colors.textSecondary,
+                  fontVariant: ['tabular-nums'],
+                }}
+              >
+                {formatDistance(trip.distance, unit)}
+              </Text>
+              <Text style={{ color: Colors.textSecondary, fontSize: 10 }}>•</Text>
+              <Text
+                selectable
+                style={{
+                  fontFamily: Fonts.medium,
+                  fontSize: 13,
+                  color: Colors.textSecondary,
+                  fontVariant: ['tabular-nums'],
+                }}
+              >
+                {formatDuration(trip.duration)}
+              </Text>
             </View>
           </Pressable>
         </Animated.View>

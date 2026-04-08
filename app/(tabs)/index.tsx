@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { View, Text, ScrollView } from 'react-native';
+import { View, Text, ScrollView, Switch, Pressable } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -7,14 +7,22 @@ import { Colors } from '@/constants/Colors';
 import { Fonts } from '@/constants/Typography';
 import { TripStatusRing } from '@/components/trip-status-ring';
 import { StatCard } from '@/components/stat-card';
+import { NotificationBanner } from '@/components/notification-banner';
 import { useAppStore } from '@/store/useAppStore';
 import { useLocationTracking } from '@/hooks/use-location-tracking';
-import { formatDistanceValue, getUnitLabel, formatDistance, formatDuration, formatTripDate } from '@/utils/helpers';
+import {
+  formatDistanceValue,
+  getUnitLabel,
+  formatDistance,
+  formatDuration,
+  formatTripDate,
+} from '@/utils/helpers';
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const trips = useAppStore((s) => s.trips);
-  const preferences = useAppStore((s) => s.preferences);
+  const settings = useAppStore((s) => s.settings);
+  const updateSettings = useAppStore((s) => s.updateSettings);
   const { isTracking } = useLocationTracking();
 
   const { weekTotal, monthTotal, lastTrip } = useMemo(() => {
@@ -22,12 +30,10 @@ export default function HomeScreen() {
     const startOfWeek = new Date(now);
     startOfWeek.setDate(now.getDate() - now.getDay());
     startOfWeek.setHours(0, 0, 0, 0);
-
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
     let week = 0;
     let month = 0;
-
     for (const trip of trips) {
       const tripDate = new Date(trip.startTime);
       if (tripDate >= startOfWeek) week += trip.distance;
@@ -41,18 +47,25 @@ export default function HomeScreen() {
     };
   }, [trips]);
 
-  const unit = preferences.distanceUnit;
+  const unit = settings.distanceUnit;
 
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: Colors.background }}
       contentContainerStyle={{
-        paddingTop: insets.top + 16,
+        paddingTop: insets.top + 12,
         paddingHorizontal: 20,
         paddingBottom: 32,
         minHeight: '100%',
       }}
     >
+      {/* Notification banner when tracking */}
+      <NotificationBanner
+        visible={isTracking}
+        title="Trip started"
+        message="MileageTrack is logging your journey"
+      />
+
       {/* Header */}
       <Animated.View
         entering={FadeIn.duration(400)}
@@ -60,7 +73,8 @@ export default function HomeScreen() {
           flexDirection: 'row',
           justifyContent: 'space-between',
           alignItems: 'center',
-          marginBottom: 32,
+          marginTop: isTracking ? 12 : 0,
+          marginBottom: 8,
         }}
       >
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
@@ -84,7 +98,7 @@ export default function HomeScreen() {
               color: Colors.textPrimary,
             }}
           >
-            MileTrack
+            MileageTrack
           </Text>
         </View>
         <View
@@ -92,7 +106,9 @@ export default function HomeScreen() {
             flexDirection: 'row',
             alignItems: 'center',
             gap: 6,
-            backgroundColor: isTracking ? `${Colors.accent}20` : `${Colors.surface}60`,
+            backgroundColor: isTracking
+              ? `${Colors.accent}20`
+              : `${Colors.surface}60`,
             paddingHorizontal: 10,
             paddingVertical: 5,
             borderRadius: 20,
@@ -120,9 +136,36 @@ export default function HomeScreen() {
       </Animated.View>
 
       {/* Main ring */}
-      <View style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: 40 }}>
+      <View
+        style={{
+          alignItems: 'center',
+          justifyContent: 'center',
+          paddingVertical: 28,
+        }}
+      >
         <TripStatusRing />
       </View>
+
+      {/* Week stat (single compact line) */}
+      <Animated.View
+        entering={FadeInUp.delay(200).duration(400)}
+        style={{ alignItems: 'center', marginBottom: 16 }}
+      >
+        <Text
+          selectable
+          style={{
+            fontFamily: Fonts.medium,
+            fontSize: 15,
+            color: Colors.textSecondary,
+            fontVariant: ['tabular-nums'],
+          }}
+        >
+          This Week:{' '}
+          <Text style={{ color: Colors.textPrimary, fontFamily: Fonts.semiBold }}>
+            {formatDistanceValue(weekTotal, unit)} {getUnitLabel(unit)}
+          </Text>
+        </Text>
+      </Animated.View>
 
       {/* Last trip summary (when not tracking) */}
       {!isTracking && lastTrip && (
@@ -152,26 +195,45 @@ export default function HomeScreen() {
           </Text>
           <Text
             selectable
-            style={{ fontFamily: Fonts.semiBold, fontSize: 15, color: Colors.textPrimary, marginBottom: 4 }}
+            style={{
+              fontFamily: Fonts.semiBold,
+              fontSize: 15,
+              color: Colors.textPrimary,
+              marginBottom: 4,
+            }}
           >
-            {lastTrip.startLocation && lastTrip.endLocation
-              ? `${lastTrip.startLocation} → ${lastTrip.endLocation}`
-              : 'Recent Trip'}
+            {lastTrip.startSuburb} → {lastTrip.endSuburb}
           </Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
             <Text
               selectable
-              style={{ fontFamily: Fonts.regular, fontSize: 13, color: Colors.textSecondary, fontVariant: ['tabular-nums'] }}
+              style={{
+                fontFamily: Fonts.regular,
+                fontSize: 13,
+                color: Colors.textSecondary,
+                fontVariant: ['tabular-nums'],
+              }}
             >
               {formatDistance(lastTrip.distance, unit)}
             </Text>
             <Text
               selectable
-              style={{ fontFamily: Fonts.regular, fontSize: 13, color: Colors.textSecondary, fontVariant: ['tabular-nums'] }}
+              style={{
+                fontFamily: Fonts.regular,
+                fontSize: 13,
+                color: Colors.textSecondary,
+                fontVariant: ['tabular-nums'],
+              }}
             >
               {formatDuration(lastTrip.duration)}
             </Text>
-            <Text style={{ fontFamily: Fonts.regular, fontSize: 13, color: Colors.textSecondary }}>
+            <Text
+              style={{
+                fontFamily: Fonts.regular,
+                fontSize: 13,
+                color: Colors.textSecondary,
+              }}
+            >
               {formatTripDate(lastTrip.startTime)}
             </Text>
           </View>
@@ -179,7 +241,7 @@ export default function HomeScreen() {
       )}
 
       {/* Week / Month stats */}
-      <View style={{ flexDirection: 'row', gap: 12 }}>
+      <View style={{ flexDirection: 'row', gap: 12, marginBottom: 16 }}>
         <StatCard
           label="This Week"
           value={formatDistanceValue(weekTotal, unit)}
@@ -193,6 +255,53 @@ export default function HomeScreen() {
           index={1}
         />
       </View>
+
+      {/* Log all as Business toggle */}
+      <Animated.View entering={FadeInUp.delay(400).duration(400)}>
+        <Pressable
+          onPress={() =>
+            updateSettings({ logAllAsBusiness: !settings.logAllAsBusiness })
+          }
+          style={{
+            backgroundColor: Colors.card,
+            borderRadius: 14,
+            borderCurve: 'continuous',
+            padding: 16,
+            borderWidth: 1,
+            borderColor: settings.logAllAsBusiness
+              ? `${Colors.primary}60`
+              : Colors.border,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
+        >
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+            <Ionicons
+              name="briefcase"
+              size={18}
+              color={
+                settings.logAllAsBusiness ? Colors.primary : Colors.textSecondary
+              }
+            />
+            <Text
+              style={{
+                fontFamily: Fonts.medium,
+                fontSize: 15,
+                color: Colors.textPrimary,
+              }}
+            >
+              Log all trips as Business
+            </Text>
+          </View>
+          <Switch
+            value={settings.logAllAsBusiness}
+            onValueChange={(val) => updateSettings({ logAllAsBusiness: val })}
+            trackColor={{ false: Colors.surface, true: Colors.primary }}
+            thumbColor="#fff"
+          />
+        </Pressable>
+      </Animated.View>
     </ScrollView>
   );
 }

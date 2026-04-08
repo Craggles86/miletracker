@@ -17,7 +17,7 @@ import { formatDistance, formatDuration, formatSpeed } from '@/utils/helpers';
 
 export function TripStatusRing() {
   const activeTrip = useAppStore((s) => s.activeTrip);
-  const preferences = useAppStore((s) => s.preferences);
+  const settings = useAppStore((s) => s.settings);
   const isActive = activeTrip.isTracking;
 
   const pulseScale = useSharedValue(1);
@@ -66,9 +66,10 @@ export function TripStatusRing() {
     opacity: ringGlow.value,
   }));
 
-  const elapsed = isActive && activeTrip.startTime
-    ? Math.round((Date.now() - new Date(activeTrip.startTime).getTime()) / 1000)
-    : 0;
+  const elapsed =
+    isActive && activeTrip.startTime
+      ? Math.round((Date.now() - new Date(activeTrip.startTime).getTime()) / 1000)
+      : 0;
 
   const ringColor = isActive ? Colors.accent : Colors.surface;
   const statusColor = isActive ? Colors.accent : Colors.textSecondary;
@@ -76,30 +77,30 @@ export function TripStatusRing() {
   return (
     <Animated.View
       entering={FadeIn.duration(600)}
-      style={{ alignItems: 'center', justifyContent: 'center', width: 240, height: 240 }}
+      style={{ alignItems: 'center', justifyContent: 'center', width: 260, height: 260 }}
     >
-      {/* Outer pulsing glow (only when active) */}
+      {/* Outer pulsing glow */}
       <Animated.View
         style={[
           {
             position: 'absolute',
-            width: 240,
-            height: 240,
-            borderRadius: 120,
+            width: 260,
+            height: 260,
+            borderRadius: 130,
             backgroundColor: isActive ? Colors.accent : Colors.surface,
           },
           pulseStyle,
         ]}
       />
 
-      {/* Ring border (separate animated opacity for glow effect) */}
+      {/* Ring border */}
       <Animated.View
         style={[
           {
             position: 'absolute',
-            width: 206,
-            height: 206,
-            borderRadius: 103,
+            width: 224,
+            height: 224,
+            borderRadius: 112,
             borderWidth: 3,
             borderColor: ringColor,
           },
@@ -107,19 +108,18 @@ export function TripStatusRing() {
         ]}
       />
 
-      {/* Solid background circle to keep text readable */}
+      {/* Solid inner circle */}
       <View
         style={{
-          width: 200,
-          height: 200,
-          borderRadius: 100,
+          width: 218,
+          height: 218,
+          borderRadius: 109,
           backgroundColor: Colors.background,
           alignItems: 'center',
           justifyContent: 'center',
         }}
       >
-        {/* Inner content — always fully opaque */}
-        <View style={{ alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+        <View style={{ alignItems: 'center', justifyContent: 'center', gap: 4 }}>
           <View
             style={{
               width: 48,
@@ -147,42 +147,41 @@ export function TripStatusRing() {
 
           {isActive ? (
             <View style={{ alignItems: 'center', gap: 2 }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+              <Text
+                selectable
+                style={{
+                  fontFamily: Fonts.bold,
+                  fontSize: 28,
+                  color: Colors.textPrimary,
+                  fontVariant: ['tabular-nums'],
+                }}
+              >
+                {formatDistance(activeTrip.currentDistance, settings.distanceUnit)}
+              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
                 <Text
                   selectable
                   style={{
-                    fontFamily: Fonts.semiBold,
-                    fontSize: 16,
-                    color: Colors.textPrimary,
-                    fontVariant: ['tabular-nums'],
-                  }}
-                >
-                  {formatDistance(activeTrip.currentDistance, preferences.distanceUnit)}
-                </Text>
-                <View style={{ width: 1, height: 14, backgroundColor: Colors.surface }} />
-                <Text
-                  selectable
-                  style={{
-                    fontFamily: Fonts.semiBold,
-                    fontSize: 16,
-                    color: Colors.textPrimary,
+                    fontFamily: Fonts.medium,
+                    fontSize: 15,
+                    color: Colors.textSecondary,
                     fontVariant: ['tabular-nums'],
                   }}
                 >
                   {formatDuration(elapsed)}
                 </Text>
+                <Text
+                  selectable
+                  style={{
+                    fontFamily: Fonts.medium,
+                    fontSize: 15,
+                    color: Colors.textSecondary,
+                    fontVariant: ['tabular-nums'],
+                  }}
+                >
+                  {formatSpeed(activeTrip.currentSpeed, settings.distanceUnit)}
+                </Text>
               </View>
-              <Text
-                selectable
-                style={{
-                  fontFamily: Fonts.medium,
-                  fontSize: 14,
-                  color: Colors.textSecondary,
-                  fontVariant: ['tabular-nums'],
-                }}
-              >
-                {formatSpeed(activeTrip.currentSpeed, preferences.distanceUnit)}
-              </Text>
             </View>
           ) : (
             <Text
@@ -191,7 +190,8 @@ export function TripStatusRing() {
                 fontSize: 13,
                 color: Colors.textSecondary,
                 textAlign: 'center',
-                maxWidth: 140,
+                maxWidth: 150,
+                marginTop: 2,
               }}
             >
               Waiting for movement...

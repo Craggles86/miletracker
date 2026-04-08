@@ -1,20 +1,27 @@
 /**
- * MileTrack — Data model types
+ * MileageTrack — Data model types
  */
 
 export type TripPurpose = 'Business' | 'Personal';
+
+export interface LatLng {
+  lat: number;
+  lng: number;
+}
 
 export interface Trip {
   id: string;
   startTime: string;
   endTime: string;
-  startLocation?: string;
-  endLocation?: string;
-  distance: number; // in km
-  duration: number; // in seconds
+  startSuburb: string;
+  endSuburb: string;
+  distance: number; // km, may be scaled
+  rawDistance: number; // original GPS distance
+  duration: number; // seconds
   purpose: TripPurpose;
-  notes?: string;
-  autoClassified: boolean;
+  routePoints: LatLng[];
+  weekId: string; // e.g. "2026-W14"
+  scalingFactor: number; // default 1.0
   createdAt: string;
 }
 
@@ -23,19 +30,51 @@ export interface ActiveTrip {
   startTime: string;
   currentDistance: number;
   currentSpeed: number;
-  lastPosition: { lat: number; lng: number } | null;
+  lastPosition: LatLng | null;
+  routePoints: LatLng[];
   stationaryStartTime: string | null;
+  stationaryPosition: LatLng | null;
 }
 
-export interface BusinessHours {
-  days: string[];
-  startTime: string;
-  endTime: string;
+export interface OdometerRecord {
+  weekId: string;
+  odometerReading: number;
+  recordedAt: string;
+  scalingApplied: boolean;
 }
 
-export interface Preferences {
+export interface FavouriteLocation {
+  id: string;
+  label: string;
+  address: string;
+  suburb: string;
+  lat: number;
+  lng: number;
+  createdAt: string;
+}
+
+export interface DaySchedule {
+  enabled: boolean;
+  startTime: string; // "HH:mm"
+  endTime: string;   // "HH:mm"
+}
+
+export type BusinessHoursPerDay = {
+  [day: string]: DaySchedule;
+};
+
+export interface Settings {
+  userName: string;
+  vehicleMake: string;
+  vehicleModel: string;
   distanceUnit: 'km' | 'miles';
-  mileageRate: number;
-  vehicleName: string;
-  businessHours: BusinessHours;
+  businessHoursPerDay: BusinessHoursPerDay;
+  logAllAsBusiness: boolean;
+  weeklyOdometerPromptEnabled: boolean;
+  lastOdometerReading: number | null;
+  lastOdometerWeekId: string | null;
+  startingOdometer: number | null;
+  exportEmail: string;
+  autoExportEnabled: boolean;
+  financialYearType: 'AU' | 'calendar';
 }

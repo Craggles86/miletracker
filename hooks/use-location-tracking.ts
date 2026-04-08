@@ -6,22 +6,15 @@ const SPEED_THRESHOLD_KMH = 10;
 const STATIONARY_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
 const STATIONARY_RADIUS_M = 20;
 const TRACKING_INTERVAL_MS = 3000;
+const ROUTE_POINT_MIN_DISTANCE_M = 15; // minimum distance between route points
 
 type LocationModule = typeof import('expo-location');
 
 export function useLocationTracking() {
-  const {
-    activeTrip,
-    startTrip,
-    updateActiveTrip,
-    endTrip,
-  } = useAppStore();
-
+  const activeTrip = useAppStore((s) => s.activeTrip);
   const locationModuleRef = useRef<LocationModule | null>(null);
   const watchRef = useRef<{ remove: () => void } | null>(null);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Dynamically import expo-location to avoid web crashes
   const getLocation = useCallback(async (): Promise<LocationModule | null> => {
     if (locationModuleRef.current) return locationModuleRef.current;
     try {
@@ -40,6 +33,24 @@ export function useLocationTracking() {
     return status === 'granted';
   }, [getLocation]);
 
+  // Reverse geocode to suburb name only
+  const reverseGeocode = useCallback(
+    async (lat: number, lng: number): Promise<string> => {
+      try {
+        const Location = await getLocation();
+        if (!Location) return 'Unknown';
+        const results = await Location.reverseGeocodeAsync({ latitude: lat, longitude: lng });
+        if (results.length > 0) {
+          return results[0].subregion || results[0].city || results[0].district || 'Unknown';
+        }
+      } catch {
+        // Geocoding can fail silently
+      }
+      return 'Unknown';
+    },
+    [getLocation]
+  );
+
   const startMonitoring = useCallback(async () => {
     const hasPermission = await requestPermissions();
     if (!hasPermission) return;
@@ -47,7 +58,6 @@ export function useLocationTracking() {
     const Location = await getLocation();
     if (!Location) return;
 
-    // Start watching position
     const subscription = await Location.watchPositionAsync(
       {
         accuracy: Location.Accuracy.High,
@@ -61,14 +71,14 @@ export function useLocationTracking() {
         const trip = state.activeTrip;
 
         if (!trip.isTracking) {
-          // Not currently tracking — check if we should start
+          // Check if we should auto-start
           if (speedKmh >= SPEED_THRESHOLD_KMH) {
             state.startTrip(latitude, longitude);
           }
           return;
         }
 
-        // Currently tracking — update distance and speed
+        // Currently tracking — calculate distance increment
         let addedDistance = 0;
         if (trip.lastPosition) {
           addedDistance =
@@ -77,28 +87,53 @@ export function useLocationTracking() {
               trip.lastPosition.lng,
               latitude,
               longitude
-            ) / 1000; // convert metres to km
+            ) / 1000;
         }
 
         const newDistance = trip.currentDistance + addedDistance;
 
-        // Check for stationary (within 20m radius for 5 minutes)
+        // Record route point if moved enough
+        const lastRoutePoint =
+          trip.routePoints.length > 0
+            ? trip.routePoints[trip.routePoints.length - 1]
+            : null;
         if (
-          trip.lastPosition &&
-          haversineDistance(
-            trip.lastPosition.lat,
-            trip.lastPosition.lng,
-            latitude,
-            longitude
-          ) < STATIONARY_RADIUS_M
+          !lastRoutePoint ||
+          haversineDistance(lastRoutePoint.lat, lastRoutePoint.lng, latitude, longitude) >=
+            ROUTE_POINT_MIN_DISTANCE_M
         ) {
+          state.addRoutePoint({ lat: latitude, lng: longitude });
+        }
+
+        // Stationary detection using the first stationary position
+        const stationaryAnchor = trip.stationaryPosition ?? trip.lastPosition;
+        const distToAnchor = stationaryAnchor
+          ? haversineDistance(stationaryAnchor.lat, stationaryAnchor.lng, latitude, longitude)
+          : Infinity;
+
+        if (distToAnchor < STATIONARY_RADIUS_M) {
           const stationaryStart =
             trip.stationaryStartTime ?? new Date().toISOString();
-          const elapsed =
-            Date.now() - new Date(stationaryStart).getTime();
+          const stationaryPos =
+            trip.stationaryPosition ?? { lat: latitude, lng: longitude };
+          const elapsed = Date.now() - new Date(stationaryStart).getTime();
 
           if (elapsed >= STATIONARY_TIMEOUT_MS) {
-            state.endTrip();
+            // End trip — geocode endpoints
+            const routePts = trip.routePoints;
+            const startPt = routePts.length > 0 ? routePts[0] : null;
+            const endPt = routePts.length > 0 ? routePts[routePts.length - 1] : null;
+
+            // Fire async geocoding then end trip
+            (async () => {
+              const startSuburb = startPt
+                ? await reverseGeocode(startPt.lat, startPt.lng)
+                : 'Unknown';
+              const endSuburb = endPt
+                ? await reverseGeocode(endPt.lat, endPt.lng)
+                : 'Unknown';
+              useAppStore.getState().endTrip(startSuburb, endSuburb);
+            })();
             return;
           }
 
@@ -106,6 +141,7 @@ export function useLocationTracking() {
             currentSpeed: speedKmh,
             currentDistance: newDistance,
             stationaryStartTime: stationaryStart,
+            stationaryPosition: stationaryPos,
           });
         } else {
           state.updateActiveTrip({
@@ -113,21 +149,18 @@ export function useLocationTracking() {
             currentDistance: newDistance,
             lastPosition: { lat: latitude, lng: longitude },
             stationaryStartTime: null,
+            stationaryPosition: null,
           });
         }
       }
     );
 
     watchRef.current = subscription;
-  }, [getLocation, requestPermissions]);
+  }, [getLocation, requestPermissions, reverseGeocode]);
 
   const stopMonitoring = useCallback(() => {
     watchRef.current?.remove();
     watchRef.current = null;
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
   }, []);
 
   useEffect(() => {
