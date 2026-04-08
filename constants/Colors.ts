@@ -1,0 +1,18 @@
+export const Colors = {
+  primary: '#3B82F6',
+  accent: '#10B981',
+  background: '#0F172A',
+  card: '#1E293B',
+  surface: '#334155',
+  textPrimary: '#F1F5F9',
+  textSecondary: '#94A3B8',
+  border: '#334155',
+  danger: '#EF4444',
+  dangerBg: '#DC2626',
+  businessBadge: '#3B82F6',
+  personalBadge: '#EF4444',
+  tabBarBg: '#0F172A',
+  tabBarBorder: '#1E293B',
+  activeTint: '#3B82F6',
+  inactiveTint: '#64748B',
+} as const;

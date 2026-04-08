@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": 1775621269370,
+  "generatedAt": 1775622336974,
   "entries": {
     "Index@app/index.tsx:5": {
       "element": {
@@ -29,6 +29,4028 @@
               "col": 20,
               "endCol": 28,
               "raw": "\"center\""
+            }
+          }
+        }
+      ]
+    },
+    "RootLayout@app/_layout.tsx:40": {
+      "element": {
+        "file": "app/_layout.tsx",
+        "line": 40
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "app/_layout.tsx",
+          "properties": {
+            "flex": {
+              "line": 40,
+              "col": 43,
+              "endCol": 44,
+              "raw": "1"
+            }
+          }
+        }
+      ]
+    },
+    "HomeScreen@app/(tabs)/index.tsx:47": {
+      "element": {
+        "file": "app/(tabs)/index.tsx",
+        "line": 47
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "app/(tabs)/index.tsx",
+          "properties": {
+            "flex": {
+              "line": 48,
+              "col": 21,
+              "endCol": 22,
+              "raw": "1"
+            }
+          }
+        }
+      ]
+    },
+    "HomeScreen@app/(tabs)/index.tsx:57": {
+      "element": {
+        "file": "app/(tabs)/index.tsx",
+        "line": 57
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "app/(tabs)/index.tsx",
+          "properties": {
+            "flexDirection": {
+              "line": 60,
+              "col": 25,
+              "endCol": 30,
+              "raw": "'row'"
+            },
+            "justifyContent": {
+              "line": 61,
+              "col": 26,
+              "endCol": 41,
+              "raw": "'space-between'"
+            },
+            "alignItems": {
+              "line": 62,
+              "col": 22,
+              "endCol": 30,
+              "raw": "'center'"
+            },
+            "marginBottom": {
+              "line": 63,
+              "col": 24,
+              "endCol": 26,
+              "raw": "32"
+            }
+          }
+        }
+      ]
+    },
+    "HomeScreen@app/(tabs)/index.tsx:66": {
+      "element": {
+        "file": "app/(tabs)/index.tsx",
+        "line": 66
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "app/(tabs)/index.tsx",
+          "properties": {
+            "flexDirection": {
+              "line": 66,
+              "col": 38,
+              "endCol": 43,
+              "raw": "'row'"
+            },
+            "alignItems": {
+              "line": 66,
+              "col": 57,
+              "endCol": 65,
+              "raw": "'center'"
+            },
+            "gap": {
+              "line": 66,
+              "col": 72,
+              "endCol": 74,
+              "raw": "10"
+            }
+          }
+        }
+      ]
+    },
+    "HomeScreen@app/(tabs)/index.tsx:67": {
+      "element": {
+        "file": "app/(tabs)/index.tsx",
+        "line": 67
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "app/(tabs)/index.tsx",
+          "properties": {
+            "width": {
+              "line": 69,
+              "col": 21,
+              "endCol": 23,
+              "raw": "34"
+            },
+            "height": {
+              "line": 70,
+              "col": 22,
+              "endCol": 24,
+              "raw": "34"
+            },
+            "borderRadius": {
+              "line": 71,
+              "col": 28,
+              "endCol": 30,
+              "raw": "10"
+            },
+            "borderCurve": {
+              "line": 72,
+              "col": 27,
+              "endCol": 39,
+              "raw": "'continuous'"
+            },
+            "alignItems": {
+              "line": 74,
+              "col": 26,
+              "endCol": 34,
+              "raw": "'center'"
+            },
+            "justifyContent": {
+              "line": 75,
+              "col": 30,
+              "endCol": 38,
+              "raw": "'center'"
+            }
+          }
+        }
+      ]
+    },
+    "HomeScreen@app/(tabs)/index.tsx:80": {
+      "element": {
+        "file": "app/(tabs)/index.tsx",
+        "line": 80
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "app/(tabs)/index.tsx",
+          "properties": {
+            "fontSize": {
+              "line": 83,
+              "col": 24,
+              "endCol": 26,
+              "raw": "22"
+            }
+          }
+        }
+      ]
+    },
+    "HomeScreen@app/(tabs)/index.tsx:90": {
+      "element": {
+        "file": "app/(tabs)/index.tsx",
+        "line": 90
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "app/(tabs)/index.tsx",
+          "properties": {
+            "flexDirection": {
+              "line": 92,
+              "col": 27,
+              "endCol": 32,
+              "raw": "'row'"
+            },
+            "alignItems": {
+              "line": 93,
+              "col": 24,
+              "endCol": 32,
+              "raw": "'center'"
+            },
+            "gap": {
+              "line": 94,
+              "col": 17,
+              "endCol": 18,
+              "raw": "6"
+            },
+            "paddingHorizontal": {
+              "line": 96,
+              "col": 31,
+              "endCol": 33,
+              "raw": "10"
+            },
+            "paddingVertical": {
+              "line": 97,
+              "col": 29,
+              "endCol": 30,
+              "raw": "5"
+            },
+            "borderRadius": {
+              "line": 98,
+              "col": 26,
+              "endCol": 28,
+              "raw": "20"
+            },
+            "borderCurve": {
+              "line": 99,
+              "col": 25,
+              "endCol": 37,
+              "raw": "'continuous'"
+            }
+          }
+        }
+      ]
+    },
+    "HomeScreen@app/(tabs)/index.tsx:102": {
+      "element": {
+        "file": "app/(tabs)/index.tsx",
+        "line": 102
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "app/(tabs)/index.tsx",
+          "properties": {
+            "width": {
+              "line": 104,
+              "col": 21,
+              "endCol": 22,
+              "raw": "7"
+            },
+            "height": {
+              "line": 105,
+              "col": 22,
+              "endCol": 23,
+              "raw": "7"
+            },
+            "borderRadius": {
+              "line": 106,
+              "col": 28,
+              "endCol": 29,
+              "raw": "4"
+            }
+          }
+        }
+      ]
+    },
+    "HomeScreen@app/(tabs)/index.tsx:110": {
+      "element": {
+        "file": "app/(tabs)/index.tsx",
+        "line": 110
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "app/(tabs)/index.tsx",
+          "properties": {
+            "fontSize": {
+              "line": 113,
+              "col": 24,
+              "endCol": 26,
+              "raw": "12"
+            }
+          }
+        }
+      ]
+    },
+    "HomeScreen@app/(tabs)/index.tsx:123": {
+      "element": {
+        "file": "app/(tabs)/index.tsx",
+        "line": 123
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "app/(tabs)/index.tsx",
+          "properties": {
+            "alignItems": {
+              "line": 123,
+              "col": 33,
+              "endCol": 41,
+              "raw": "'center'"
+            },
+            "justifyContent": {
+              "line": 123,
+              "col": 59,
+              "endCol": 67,
+              "raw": "'center'"
+            },
+            "paddingVertical": {
+              "line": 123,
+              "col": 86,
+              "endCol": 88,
+              "raw": "40"
+            }
+          }
+        }
+      ]
+    },
+    "HomeScreen@app/(tabs)/index.tsx:129": {
+      "element": {
+        "file": "app/(tabs)/index.tsx",
+        "line": 129
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "app/(tabs)/index.tsx",
+          "properties": {
+            "borderRadius": {
+              "line": 133,
+              "col": 26,
+              "endCol": 28,
+              "raw": "14"
+            },
+            "borderCurve": {
+              "line": 134,
+              "col": 25,
+              "endCol": 37,
+              "raw": "'continuous'"
+            },
+            "padding": {
+              "line": 135,
+              "col": 21,
+              "endCol": 23,
+              "raw": "16"
+            },
+            "borderWidth": {
+              "line": 136,
+              "col": 25,
+              "endCol": 26,
+              "raw": "1"
+            },
+            "marginBottom": {
+              "line": 138,
+              "col": 26,
+              "endCol": 28,
+              "raw": "16"
+            }
+          }
+        }
+      ]
+    },
+    "HomeScreen@app/(tabs)/index.tsx:141": {
+      "element": {
+        "file": "app/(tabs)/index.tsx",
+        "line": 141
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "app/(tabs)/index.tsx",
+          "properties": {
+            "fontSize": {
+              "line": 144,
+              "col": 24,
+              "endCol": 26,
+              "raw": "11"
+            },
+            "textTransform": {
+              "line": 146,
+              "col": 29,
+              "endCol": 40,
+              "raw": "'uppercase'"
+            },
+            "letterSpacing": {
+              "line": 147,
+              "col": 29,
+              "endCol": 32,
+              "raw": "0.8"
+            },
+            "marginBottom": {
+              "line": 148,
+              "col": 28,
+              "endCol": 29,
+              "raw": "8"
+            }
+          }
+        }
+      ]
+    },
+    "HomeScreen@app/(tabs)/index.tsx:153": {
+      "element": {
+        "file": "app/(tabs)/index.tsx",
+        "line": 153
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "app/(tabs)/index.tsx",
+          "properties": {
+            "fontSize": {
+              "line": 155,
+              "col": 59,
+              "endCol": 61,
+              "raw": "15"
+            },
+            "marginBottom": {
+              "line": 155,
+              "col": 104,
+              "endCol": 105,
+              "raw": "4"
+            }
+          }
+        }
+      ]
+    },
+    "HomeScreen@app/(tabs)/index.tsx:161": {
+      "element": {
+        "file": "app/(tabs)/index.tsx",
+        "line": 161
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "app/(tabs)/index.tsx",
+          "properties": {
+            "flexDirection": {
+              "line": 161,
+              "col": 40,
+              "endCol": 45,
+              "raw": "'row'"
+            },
+            "alignItems": {
+              "line": 161,
+              "col": 59,
+              "endCol": 67,
+              "raw": "'center'"
+            },
+            "gap": {
+              "line": 161,
+              "col": 74,
+              "endCol": 76,
+              "raw": "16"
+            }
+          }
+        }
+      ]
+    },
+    "HomeScreen@app/(tabs)/index.tsx:162": {
+      "element": {
+        "file": "app/(tabs)/index.tsx",
+        "line": 162
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "app/(tabs)/index.tsx",
+          "properties": {
+            "fontSize": {
+              "line": 164,
+              "col": 60,
+              "endCol": 62,
+              "raw": "13"
+            }
+          }
+        }
+      ]
+    },
+    "HomeScreen@app/(tabs)/index.tsx:168": {
+      "element": {
+        "file": "app/(tabs)/index.tsx",
+        "line": 168
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "app/(tabs)/index.tsx",
+          "properties": {
+            "fontSize": {
+              "line": 170,
+              "col": 60,
+              "endCol": 62,
+              "raw": "13"
+            }
+          }
+        }
+      ]
+    },
+    "HomeScreen@app/(tabs)/index.tsx:174": {
+      "element": {
+        "file": "app/(tabs)/index.tsx",
+        "line": 174
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "app/(tabs)/index.tsx",
+          "properties": {
+            "fontSize": {
+              "line": 174,
+              "col": 64,
+              "endCol": 66,
+              "raw": "13"
+            }
+          }
+        }
+      ]
+    },
+    "HomeScreen@app/(tabs)/index.tsx:182": {
+      "element": {
+        "file": "app/(tabs)/index.tsx",
+        "line": 182
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "app/(tabs)/index.tsx",
+          "properties": {
+            "flexDirection": {
+              "line": 182,
+              "col": 36,
+              "endCol": 41,
+              "raw": "'row'"
+            },
+            "gap": {
+              "line": 182,
+              "col": 48,
+              "endCol": 50,
+              "raw": "12"
+            }
+          }
+        }
+      ]
+    },
+    "TripsScreen@app/(tabs)/trips.tsx:47": {
+      "element": {
+        "file": "app/(tabs)/trips.tsx",
+        "line": 47
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "app/(tabs)/trips.tsx",
+          "properties": {
+            "flex": {
+              "line": 47,
+              "col": 25,
+              "endCol": 26,
+              "raw": "1"
+            }
+          }
+        }
+      ]
+    },
+    "TripsScreen@app/(tabs)/trips.tsx:48": {
+      "element": {
+        "file": "app/(tabs)/trips.tsx",
+        "line": 48
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "app/(tabs)/trips.tsx",
+          "properties": {
+            "flex": {
+              "line": 49,
+              "col": 23,
+              "endCol": 24,
+              "raw": "1"
+            }
+          }
+        }
+      ]
+    },
+    "TripsScreen@app/(tabs)/trips.tsx:57": {
+      "element": {
+        "file": "app/(tabs)/trips.tsx",
+        "line": 57
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "app/(tabs)/trips.tsx",
+          "properties": {
+            "marginBottom": {
+              "line": 57,
+              "col": 78,
+              "endCol": 80,
+              "raw": "20"
+            }
+          }
+        }
+      ]
+    },
+    "TripsScreen@app/(tabs)/trips.tsx:58": {
+      "element": {
+        "file": "app/(tabs)/trips.tsx",
+        "line": 58
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "app/(tabs)/trips.tsx",
+          "properties": {
+            "fontSize": {
+              "line": 61,
+              "col": 24,
+              "endCol": 26,
+              "raw": "26"
+            },
+            "textAlign": {
+              "line": 63,
+              "col": 25,
+              "endCol": 33,
+              "raw": "'center'"
+            },
+            "marginBottom": {
+              "line": 64,
+              "col": 28,
+              "endCol": 29,
+              "raw": "4"
+            }
+          }
+        }
+      ]
+    },
+    "TripsScreen@app/(tabs)/trips.tsx:72": {
+      "element": {
+        "file": "app/(tabs)/trips.tsx",
+        "line": 72
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "app/(tabs)/trips.tsx",
+          "properties": {
+            "borderRadius": {
+              "line": 76,
+              "col": 26,
+              "endCol": 28,
+              "raw": "14"
+            },
+            "borderCurve": {
+              "line": 77,
+              "col": 25,
+              "endCol": 37,
+              "raw": "'continuous'"
+            },
+            "padding": {
+              "line": 78,
+              "col": 21,
+              "endCol": 23,
+              "raw": "20"
+            },
+            "borderWidth": {
+              "line": 79,
+              "col": 25,
+              "endCol": 26,
+              "raw": "1"
+            },
+            "alignItems": {
+              "line": 81,
+              "col": 24,
+              "endCol": 32,
+              "raw": "'center'"
+            },
+            "marginBottom": {
+              "line": 82,
+              "col": 26,
+              "endCol": 28,
+              "raw": "16"
+            },
+            "gap": {
+              "line": 83,
+              "col": 17,
+              "endCol": 18,
+              "raw": "4"
+            }
+          }
+        }
+      ]
+    },
+    "TripsScreen@app/(tabs)/trips.tsx:86": {
+      "element": {
+        "file": "app/(tabs)/trips.tsx",
+        "line": 86
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "app/(tabs)/trips.tsx",
+          "properties": {
+            "fontSize": {
+              "line": 89,
+              "col": 24,
+              "endCol": 26,
+              "raw": "12"
+            },
+            "textTransform": {
+              "line": 91,
+              "col": 29,
+              "endCol": 40,
+              "raw": "'uppercase'"
+            },
+            "letterSpacing": {
+              "line": 92,
+              "col": 29,
+              "endCol": 32,
+              "raw": "0.8"
+            }
+          }
+        }
+      ]
+    },
+    "TripsScreen@app/(tabs)/trips.tsx:97": {
+      "element": {
+        "file": "app/(tabs)/trips.tsx",
+        "line": 97
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "app/(tabs)/trips.tsx",
+          "properties": {
+            "fontSize": {
+              "line": 101,
+              "col": 24,
+              "endCol": 26,
+              "raw": "32"
+            }
+          }
+        }
+      ]
+    },
+    "TripsScreen@app/(tabs)/trips.tsx:109": {
+      "element": {
+        "file": "app/(tabs)/trips.tsx",
+        "line": 109
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "app/(tabs)/trips.tsx",
+          "properties": {
+            "fontSize": {
+              "line": 113,
+              "col": 26,
+              "endCol": 28,
+              "raw": "13"
+            }
+          }
+        }
+      ]
+    },
+    "TripsScreen@app/(tabs)/trips.tsx:124": {
+      "element": {
+        "file": "app/(tabs)/trips.tsx",
+        "line": 124
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "app/(tabs)/trips.tsx",
+          "properties": {
+            "marginBottom": {
+              "line": 126,
+              "col": 33,
+              "endCol": 35,
+              "raw": "16"
+            }
+          }
+        }
+      ]
+    },
+    "TripsScreen@app/(tabs)/trips.tsx:133": {
+      "element": {
+        "file": "app/(tabs)/trips.tsx",
+        "line": 133
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "app/(tabs)/trips.tsx",
+          "properties": {
+            "alignItems": {
+              "line": 135,
+              "col": 33,
+              "endCol": 41,
+              "raw": "'center'"
+            },
+            "paddingVertical": {
+              "line": 135,
+              "col": 60,
+              "endCol": 62,
+              "raw": "60"
+            },
+            "gap": {
+              "line": 135,
+              "col": 69,
+              "endCol": 71,
+              "raw": "12"
+            }
+          }
+        }
+      ]
+    },
+    "TripsScreen@app/(tabs)/trips.tsx:137": {
+      "element": {
+        "file": "app/(tabs)/trips.tsx",
+        "line": 137
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "app/(tabs)/trips.tsx",
+          "properties": {
+            "width": {
+              "line": 139,
+              "col": 23,
+              "endCol": 25,
+              "raw": "64"
+            },
+            "height": {
+              "line": 140,
+              "col": 24,
+              "endCol": 26,
+              "raw": "64"
+            },
+            "borderRadius": {
+              "line": 141,
+              "col": 30,
+              "endCol": 32,
+              "raw": "32"
+            },
+            "alignItems": {
+              "line": 143,
+              "col": 28,
+              "endCol": 36,
+              "raw": "'center'"
+            },
+            "justifyContent": {
+              "line": 144,
+              "col": 32,
+              "endCol": 40,
+              "raw": "'center'"
+            }
+          }
+        }
+      ]
+    },
+    "TripsScreen@app/(tabs)/trips.tsx:147": {
+      "element": {
+        "file": "app/(tabs)/trips.tsx",
+        "line": 147
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "app/(tabs)/trips.tsx",
+          "properties": {
+            "fontSize": {
+              "line": 147,
+              "col": 39,
+              "endCol": 41,
+              "raw": "28"
+            }
+          }
+        }
+      ]
+    },
+    "TripsScreen@app/(tabs)/trips.tsx:149": {
+      "element": {
+        "file": "app/(tabs)/trips.tsx",
+        "line": 149
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "app/(tabs)/trips.tsx",
+          "properties": {
+            "fontSize": {
+              "line": 152,
+              "col": 26,
+              "endCol": 28,
+              "raw": "17"
+            }
+          }
+        }
+      ]
+    },
+    "TripsScreen@app/(tabs)/trips.tsx:158": {
+      "element": {
+        "file": "app/(tabs)/trips.tsx",
+        "line": 158
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "app/(tabs)/trips.tsx",
+          "properties": {
+            "fontSize": {
+              "line": 161,
+              "col": 26,
+              "endCol": 28,
+              "raw": "14"
+            },
+            "textAlign": {
+              "line": 163,
+              "col": 27,
+              "endCol": 35,
+              "raw": "'center'"
+            },
+            "maxWidth": {
+              "line": 164,
+              "col": 26,
+              "endCol": 29,
+              "raw": "260"
+            }
+          }
+        }
+      ]
+    },
+    "TripsScreen@app/(tabs)/trips.tsx:171": {
+      "element": {
+        "file": "app/(tabs)/trips.tsx",
+        "line": 171
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "app/(tabs)/trips.tsx",
+          "properties": {
+            "gap": {
+              "line": 171,
+              "col": 30,
+              "endCol": 32,
+              "raw": "10"
+            }
+          }
+        }
+      ]
+    },
+    "SettingsScreen@app/(tabs)/settings.tsx:23": {
+      "element": {
+        "file": "app/(tabs)/settings.tsx",
+        "line": 23
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "app/(tabs)/settings.tsx",
+          "properties": {
+            "flex": {
+              "line": 24,
+              "col": 21,
+              "endCol": 22,
+              "raw": "1"
+            }
+          }
+        }
+      ]
+    },
+    "SettingsScreen@app/(tabs)/settings.tsx:35": {
+      "element": {
+        "file": "app/(tabs)/settings.tsx",
+        "line": 35
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "app/(tabs)/settings.tsx",
+          "properties": {
+            "fontSize": {
+              "line": 38,
+              "col": 22,
+              "endCol": 24,
+              "raw": "26"
+            },
+            "textAlign": {
+              "line": 40,
+              "col": 23,
+              "endCol": 31,
+              "raw": "'center'"
+            }
+          }
+        }
+      ]
+    },
+    "SettingsScreen@app/(tabs)/settings.tsx:51": {
+      "element": {
+        "file": "app/(tabs)/settings.tsx",
+        "line": 51
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "app/(tabs)/settings.tsx",
+          "properties": {
+            "gap": {
+              "line": 51,
+              "col": 30,
+              "endCol": 32,
+              "raw": "10"
+            }
+          }
+        }
+      ]
+    },
+    "SettingsScreen@app/(tabs)/settings.tsx:52": {
+      "element": {
+        "file": "app/(tabs)/settings.tsx",
+        "line": 52
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "app/(tabs)/settings.tsx",
+          "properties": {
+            "fontSize": {
+              "line": 55,
+              "col": 26,
+              "endCol": 28,
+              "raw": "14"
+            }
+          }
+        }
+      ]
+    },
+    "SettingsScreen@app/(tabs)/settings.tsx:72": {
+      "element": {
+        "file": "app/(tabs)/settings.tsx",
+        "line": 72
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "app/(tabs)/settings.tsx",
+          "properties": {
+            "flexDirection": {
+              "line": 72,
+              "col": 40,
+              "endCol": 45,
+              "raw": "'row'"
+            },
+            "gap": {
+              "line": 72,
+              "col": 52,
+              "endCol": 54,
+              "raw": "12"
+            }
+          }
+        }
+      ]
+    },
+    "SettingsScreen@app/(tabs)/settings.tsx:111": {
+      "element": {
+        "file": "app/(tabs)/settings.tsx",
+        "line": 111
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "app/(tabs)/settings.tsx",
+          "properties": {
+            "flexDirection": {
+              "line": 111,
+              "col": 40,
+              "endCol": 45,
+              "raw": "'row'"
+            },
+            "alignItems": {
+              "line": 111,
+              "col": 59,
+              "endCol": 67,
+              "raw": "'center'"
+            },
+            "gap": {
+              "line": 111,
+              "col": 74,
+              "endCol": 75,
+              "raw": "8"
+            }
+          }
+        }
+      ]
+    },
+    "SettingsScreen@app/(tabs)/settings.tsx:112": {
+      "element": {
+        "file": "app/(tabs)/settings.tsx",
+        "line": 112
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "app/(tabs)/settings.tsx",
+          "properties": {
+            "flex": {
+              "line": 114,
+              "col": 22,
+              "endCol": 23,
+              "raw": "1"
+            },
+            "flexDirection": {
+              "line": 115,
+              "col": 31,
+              "endCol": 36,
+              "raw": "'row'"
+            },
+            "alignItems": {
+              "line": 116,
+              "col": 28,
+              "endCol": 36,
+              "raw": "'center'"
+            },
+            "borderRadius": {
+              "line": 118,
+              "col": 30,
+              "endCol": 32,
+              "raw": "10"
+            },
+            "borderCurve": {
+              "line": 119,
+              "col": 29,
+              "endCol": 41,
+              "raw": "'continuous'"
+            },
+            "paddingHorizontal": {
+              "line": 120,
+              "col": 35,
+              "endCol": 37,
+              "raw": "14"
+            },
+            "paddingVertical": {
+              "line": 121,
+              "col": 33,
+              "endCol": 35,
+              "raw": "10"
+            }
+          }
+        }
+      ]
+    },
+    "SettingsScreen@app/(tabs)/settings.tsx:124": {
+      "element": {
+        "file": "app/(tabs)/settings.tsx",
+        "line": 124
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "app/(tabs)/settings.tsx",
+          "properties": {
+            "fontSize": {
+              "line": 127,
+              "col": 28,
+              "endCol": 30,
+              "raw": "16"
+            },
+            "marginRight": {
+              "line": 129,
+              "col": 31,
+              "endCol": 32,
+              "raw": "2"
+            }
+          }
+        }
+      ]
+    },
+    "SettingsScreen@app/(tabs)/settings.tsx:134": {
+      "element": {
+        "file": "app/(tabs)/settings.tsx",
+        "line": 134
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "app/(tabs)/settings.tsx",
+          "properties": {
+            "flex": {
+              "line": 147,
+              "col": 24,
+              "endCol": 25,
+              "raw": "1"
+            },
+            "fontSize": {
+              "line": 149,
+              "col": 28,
+              "endCol": 30,
+              "raw": "16"
+            }
+          }
+        }
+      ]
+    },
+    "SettingsScreen@app/(tabs)/settings.tsx:155": {
+      "element": {
+        "file": "app/(tabs)/settings.tsx",
+        "line": 155
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "app/(tabs)/settings.tsx",
+          "properties": {
+            "fontSize": {
+              "line": 158,
+              "col": 28,
+              "endCol": 30,
+              "raw": "14"
+            }
+          }
+        }
+      ]
+    },
+    "SettingsScreen@app/(tabs)/settings.tsx:165": {
+      "element": {
+        "file": "app/(tabs)/settings.tsx",
+        "line": 165
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "app/(tabs)/settings.tsx",
+          "properties": {
+            "width": {
+              "line": 167,
+              "col": 23,
+              "endCol": 25,
+              "raw": "40"
+            },
+            "height": {
+              "line": 168,
+              "col": 24,
+              "endCol": 26,
+              "raw": "40"
+            },
+            "borderRadius": {
+              "line": 169,
+              "col": 30,
+              "endCol": 32,
+              "raw": "10"
+            },
+            "borderCurve": {
+              "line": 170,
+              "col": 29,
+              "endCol": 41,
+              "raw": "'continuous'"
+            },
+            "alignItems": {
+              "line": 172,
+              "col": 28,
+              "endCol": 36,
+              "raw": "'center'"
+            },
+            "justifyContent": {
+              "line": 173,
+              "col": 32,
+              "endCol": 40,
+              "raw": "'center'"
+            }
+          }
+        }
+      ]
+    },
+    "SettingsScreen@app/(tabs)/settings.tsx:185": {
+      "element": {
+        "file": "app/(tabs)/settings.tsx",
+        "line": 185
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "app/(tabs)/settings.tsx",
+          "properties": {
+            "borderRadius": {
+              "line": 192,
+              "col": 28,
+              "endCol": 30,
+              "raw": "10"
+            },
+            "borderCurve": {
+              "line": 193,
+              "col": 27,
+              "endCol": 39,
+              "raw": "'continuous'"
+            },
+            "paddingHorizontal": {
+              "line": 194,
+              "col": 33,
+              "endCol": 35,
+              "raw": "14"
+            },
+            "paddingVertical": {
+              "line": 195,
+              "col": 31,
+              "endCol": 33,
+              "raw": "12"
+            },
+            "fontSize": {
+              "line": 197,
+              "col": 24,
+              "endCol": 26,
+              "raw": "15"
+            }
+          }
+        }
+      ]
+    },
+    "SettingsScreen@app/(tabs)/settings.tsx:206": {
+      "element": {
+        "file": "app/(tabs)/settings.tsx",
+        "line": 206
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "app/(tabs)/settings.tsx",
+          "properties": {
+            "borderRadius": {
+              "line": 209,
+              "col": 26,
+              "endCol": 28,
+              "raw": "14"
+            },
+            "borderCurve": {
+              "line": 210,
+              "col": 25,
+              "endCol": 37,
+              "raw": "'continuous'"
+            },
+            "padding": {
+              "line": 211,
+              "col": 21,
+              "endCol": 23,
+              "raw": "16"
+            },
+            "borderWidth": {
+              "line": 212,
+              "col": 25,
+              "endCol": 26,
+              "raw": "1"
+            },
+            "flexDirection": {
+              "line": 214,
+              "col": 27,
+              "endCol": 32,
+              "raw": "'row'"
+            },
+            "alignItems": {
+              "line": 215,
+              "col": 24,
+              "endCol": 36,
+              "raw": "'flex-start'"
+            },
+            "gap": {
+              "line": 216,
+              "col": 17,
+              "endCol": 19,
+              "raw": "12"
+            }
+          }
+        }
+      ]
+    },
+    "SettingsScreen@app/(tabs)/settings.tsx:219": {
+      "element": {
+        "file": "app/(tabs)/settings.tsx",
+        "line": 219
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "app/(tabs)/settings.tsx",
+          "properties": {
+            "width": {
+              "line": 221,
+              "col": 21,
+              "endCol": 23,
+              "raw": "36"
+            },
+            "height": {
+              "line": 222,
+              "col": 22,
+              "endCol": 24,
+              "raw": "36"
+            },
+            "borderRadius": {
+              "line": 223,
+              "col": 28,
+              "endCol": 30,
+              "raw": "18"
+            },
+            "alignItems": {
+              "line": 225,
+              "col": 26,
+              "endCol": 34,
+              "raw": "'center'"
+            },
+            "justifyContent": {
+              "line": 226,
+              "col": 30,
+              "endCol": 38,
+              "raw": "'center'"
+            }
+          }
+        }
+      ]
+    },
+    "SettingsScreen@app/(tabs)/settings.tsx:231": {
+      "element": {
+        "file": "app/(tabs)/settings.tsx",
+        "line": 231
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "app/(tabs)/settings.tsx",
+          "properties": {
+            "flex": {
+              "line": 231,
+              "col": 31,
+              "endCol": 32,
+              "raw": "1"
+            },
+            "gap": {
+              "line": 231,
+              "col": 39,
+              "endCol": 40,
+              "raw": "4"
+            }
+          }
+        }
+      ]
+    },
+    "SettingsScreen@app/(tabs)/settings.tsx:232": {
+      "element": {
+        "file": "app/(tabs)/settings.tsx",
+        "line": 232
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "app/(tabs)/settings.tsx",
+          "properties": {
+            "fontSize": {
+              "line": 235,
+              "col": 26,
+              "endCol": 28,
+              "raw": "14"
+            }
+          }
+        }
+      ]
+    },
+    "SettingsScreen@app/(tabs)/settings.tsx:241": {
+      "element": {
+        "file": "app/(tabs)/settings.tsx",
+        "line": 241
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "app/(tabs)/settings.tsx",
+          "properties": {
+            "fontSize": {
+              "line": 244,
+              "col": 26,
+              "endCol": 28,
+              "raw": "13"
+            },
+            "lineHeight": {
+              "line": 246,
+              "col": 28,
+              "endCol": 30,
+              "raw": "18"
+            }
+          }
+        }
+      ]
+    },
+    "StatCard@components/stat-card.tsx:15": {
+      "element": {
+        "file": "components/stat-card.tsx",
+        "line": 15
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/stat-card.tsx",
+          "properties": {
+            "flex": {
+              "line": 18,
+              "col": 14,
+              "endCol": 15,
+              "raw": "1"
+            },
+            "borderRadius": {
+              "line": 20,
+              "col": 22,
+              "endCol": 24,
+              "raw": "14"
+            },
+            "borderCurve": {
+              "line": 21,
+              "col": 21,
+              "endCol": 33,
+              "raw": "'continuous'"
+            },
+            "padding": {
+              "line": 22,
+              "col": 17,
+              "endCol": 19,
+              "raw": "16"
+            },
+            "borderWidth": {
+              "line": 23,
+              "col": 21,
+              "endCol": 22,
+              "raw": "1"
+            }
+          }
+        }
+      ]
+    },
+    "StatCard@components/stat-card.tsx:27": {
+      "element": {
+        "file": "components/stat-card.tsx",
+        "line": 27
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/stat-card.tsx",
+          "properties": {
+            "fontSize": {
+              "line": 30,
+              "col": 20,
+              "endCol": 22,
+              "raw": "11"
+            },
+            "textTransform": {
+              "line": 32,
+              "col": 25,
+              "endCol": 36,
+              "raw": "'uppercase'"
+            },
+            "letterSpacing": {
+              "line": 33,
+              "col": 25,
+              "endCol": 28,
+              "raw": "0.8"
+            },
+            "marginBottom": {
+              "line": 34,
+              "col": 24,
+              "endCol": 25,
+              "raw": "6"
+            }
+          }
+        }
+      ]
+    },
+    "StatCard@components/stat-card.tsx:39": {
+      "element": {
+        "file": "components/stat-card.tsx",
+        "line": 39
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/stat-card.tsx",
+          "properties": {
+            "flexDirection": {
+              "line": 39,
+              "col": 36,
+              "endCol": 41,
+              "raw": "'row'"
+            },
+            "alignItems": {
+              "line": 39,
+              "col": 55,
+              "endCol": 65,
+              "raw": "'baseline'"
+            },
+            "gap": {
+              "line": 39,
+              "col": 72,
+              "endCol": 73,
+              "raw": "4"
+            }
+          }
+        }
+      ]
+    },
+    "StatCard@components/stat-card.tsx:40": {
+      "element": {
+        "file": "components/stat-card.tsx",
+        "line": 40
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/stat-card.tsx",
+          "properties": {
+            "fontSize": {
+              "line": 44,
+              "col": 22,
+              "endCol": 24,
+              "raw": "22"
+            }
+          }
+        }
+      ]
+    },
+    "StatCard@components/stat-card.tsx:52": {
+      "element": {
+        "file": "components/stat-card.tsx",
+        "line": 52
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/stat-card.tsx",
+          "properties": {
+            "fontSize": {
+              "line": 55,
+              "col": 24,
+              "endCol": 26,
+              "raw": "14"
+            }
+          }
+        }
+      ]
+    },
+    "PurposeFilter@components/purpose-filter.tsx:17": {
+      "element": {
+        "file": "components/purpose-filter.tsx",
+        "line": 17
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/purpose-filter.tsx",
+          "properties": {
+            "flexDirection": {
+              "line": 19,
+              "col": 23,
+              "endCol": 28,
+              "raw": "'row'"
+            },
+            "borderRadius": {
+              "line": 21,
+              "col": 22,
+              "endCol": 24,
+              "raw": "10"
+            },
+            "borderCurve": {
+              "line": 22,
+              "col": 21,
+              "endCol": 33,
+              "raw": "'continuous'"
+            },
+            "padding": {
+              "line": 23,
+              "col": 17,
+              "endCol": 18,
+              "raw": "3"
+            }
+          }
+        }
+      ]
+    },
+    "PurposeFilter@components/purpose-filter.tsx:29": {
+      "element": {
+        "file": "components/purpose-filter.tsx",
+        "line": 29
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/purpose-filter.tsx",
+          "properties": {
+            "flex": {
+              "line": 33,
+              "col": 20,
+              "endCol": 21,
+              "raw": "1"
+            },
+            "paddingVertical": {
+              "line": 34,
+              "col": 31,
+              "endCol": 32,
+              "raw": "8"
+            },
+            "borderRadius": {
+              "line": 35,
+              "col": 28,
+              "endCol": 29,
+              "raw": "8"
+            },
+            "borderCurve": {
+              "line": 36,
+              "col": 27,
+              "endCol": 39,
+              "raw": "'continuous'"
+            },
+            "alignItems": {
+              "line": 38,
+              "col": 26,
+              "endCol": 34,
+              "raw": "'center'"
+            }
+          }
+        }
+      ]
+    },
+    "PurposeFilter@components/purpose-filter.tsx:41": {
+      "element": {
+        "file": "components/purpose-filter.tsx",
+        "line": 41
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/purpose-filter.tsx",
+          "properties": {
+            "fontSize": {
+              "line": 44,
+              "col": 26,
+              "endCol": 28,
+              "raw": "13"
+            }
+          }
+        }
+      ]
+    },
+    "TripStatusRing@components/trip-status-ring.tsx:77": {
+      "element": {
+        "file": "components/trip-status-ring.tsx",
+        "line": 77
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/trip-status-ring.tsx",
+          "properties": {
+            "alignItems": {
+              "line": 79,
+              "col": 27,
+              "endCol": 35,
+              "raw": "'center'"
+            },
+            "justifyContent": {
+              "line": 79,
+              "col": 53,
+              "endCol": 61,
+              "raw": "'center'"
+            },
+            "width": {
+              "line": 79,
+              "col": 70,
+              "endCol": 73,
+              "raw": "240"
+            },
+            "height": {
+              "line": 79,
+              "col": 83,
+              "endCol": 86,
+              "raw": "240"
+            }
+          }
+        }
+      ]
+    },
+    "TripStatusRing@components/trip-status-ring.tsx:82": {
+      "element": {
+        "file": "components/trip-status-ring.tsx",
+        "line": 82
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/trip-status-ring.tsx",
+          "properties": {
+            "position": {
+              "line": 85,
+              "col": 22,
+              "endCol": 32,
+              "raw": "'absolute'"
+            },
+            "width": {
+              "line": 86,
+              "col": 19,
+              "endCol": 22,
+              "raw": "240"
+            },
+            "height": {
+              "line": 87,
+              "col": 20,
+              "endCol": 23,
+              "raw": "240"
+            },
+            "borderRadius": {
+              "line": 88,
+              "col": 26,
+              "endCol": 29,
+              "raw": "120"
+            }
+          }
+        },
+        {
+          "origin": "dynamic",
+          "resolvable": false
+        }
+      ]
+    },
+    "TripStatusRing@components/trip-status-ring.tsx:96": {
+      "element": {
+        "file": "components/trip-status-ring.tsx",
+        "line": 96
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/trip-status-ring.tsx",
+          "properties": {
+            "position": {
+              "line": 99,
+              "col": 22,
+              "endCol": 32,
+              "raw": "'absolute'"
+            },
+            "width": {
+              "line": 100,
+              "col": 19,
+              "endCol": 22,
+              "raw": "206"
+            },
+            "height": {
+              "line": 101,
+              "col": 20,
+              "endCol": 23,
+              "raw": "206"
+            },
+            "borderRadius": {
+              "line": 102,
+              "col": 26,
+              "endCol": 29,
+              "raw": "103"
+            },
+            "borderWidth": {
+              "line": 103,
+              "col": 25,
+              "endCol": 26,
+              "raw": "3"
+            }
+          }
+        },
+        {
+          "origin": "dynamic",
+          "resolvable": false
+        }
+      ]
+    },
+    "TripStatusRing@components/trip-status-ring.tsx:111": {
+      "element": {
+        "file": "components/trip-status-ring.tsx",
+        "line": 111
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/trip-status-ring.tsx",
+          "properties": {
+            "width": {
+              "line": 113,
+              "col": 17,
+              "endCol": 20,
+              "raw": "200"
+            },
+            "height": {
+              "line": 114,
+              "col": 18,
+              "endCol": 21,
+              "raw": "200"
+            },
+            "borderRadius": {
+              "line": 115,
+              "col": 24,
+              "endCol": 27,
+              "raw": "100"
+            },
+            "alignItems": {
+              "line": 117,
+              "col": 22,
+              "endCol": 30,
+              "raw": "'center'"
+            },
+            "justifyContent": {
+              "line": 118,
+              "col": 26,
+              "endCol": 34,
+              "raw": "'center'"
+            }
+          }
+        }
+      ]
+    },
+    "TripStatusRing@components/trip-status-ring.tsx:122": {
+      "element": {
+        "file": "components/trip-status-ring.tsx",
+        "line": 122
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/trip-status-ring.tsx",
+          "properties": {
+            "alignItems": {
+              "line": 122,
+              "col": 35,
+              "endCol": 43,
+              "raw": "'center'"
+            },
+            "justifyContent": {
+              "line": 122,
+              "col": 61,
+              "endCol": 69,
+              "raw": "'center'"
+            },
+            "gap": {
+              "line": 122,
+              "col": 76,
+              "endCol": 77,
+              "raw": "6"
+            }
+          }
+        }
+      ]
+    },
+    "TripStatusRing@components/trip-status-ring.tsx:123": {
+      "element": {
+        "file": "components/trip-status-ring.tsx",
+        "line": 123
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/trip-status-ring.tsx",
+          "properties": {
+            "width": {
+              "line": 125,
+              "col": 21,
+              "endCol": 23,
+              "raw": "48"
+            },
+            "height": {
+              "line": 126,
+              "col": 22,
+              "endCol": 24,
+              "raw": "48"
+            },
+            "borderRadius": {
+              "line": 127,
+              "col": 28,
+              "endCol": 30,
+              "raw": "24"
+            },
+            "alignItems": {
+              "line": 129,
+              "col": 26,
+              "endCol": 34,
+              "raw": "'center'"
+            },
+            "justifyContent": {
+              "line": 130,
+              "col": 30,
+              "endCol": 38,
+              "raw": "'center'"
+            }
+          }
+        }
+      ]
+    },
+    "TripStatusRing@components/trip-status-ring.tsx:136": {
+      "element": {
+        "file": "components/trip-status-ring.tsx",
+        "line": 136
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/trip-status-ring.tsx",
+          "properties": {
+            "fontSize": {
+              "line": 139,
+              "col": 24,
+              "endCol": 26,
+              "raw": "13"
+            },
+            "letterSpacing": {
+              "line": 141,
+              "col": 29,
+              "endCol": 32,
+              "raw": "1.5"
+            },
+            "textTransform": {
+              "line": 142,
+              "col": 29,
+              "endCol": 40,
+              "raw": "'uppercase'"
+            }
+          }
+        }
+      ]
+    },
+    "TripStatusRing@components/trip-status-ring.tsx:149": {
+      "element": {
+        "file": "components/trip-status-ring.tsx",
+        "line": 149
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/trip-status-ring.tsx",
+          "properties": {
+            "alignItems": {
+              "line": 149,
+              "col": 39,
+              "endCol": 47,
+              "raw": "'center'"
+            },
+            "gap": {
+              "line": 149,
+              "col": 54,
+              "endCol": 55,
+              "raw": "2"
+            }
+          }
+        }
+      ]
+    },
+    "TripStatusRing@components/trip-status-ring.tsx:150": {
+      "element": {
+        "file": "components/trip-status-ring.tsx",
+        "line": 150
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/trip-status-ring.tsx",
+          "properties": {
+            "flexDirection": {
+              "line": 150,
+              "col": 44,
+              "endCol": 49,
+              "raw": "'row'"
+            },
+            "alignItems": {
+              "line": 150,
+              "col": 63,
+              "endCol": 71,
+              "raw": "'center'"
+            },
+            "gap": {
+              "line": 150,
+              "col": 78,
+              "endCol": 80,
+              "raw": "10"
+            }
+          }
+        }
+      ]
+    },
+    "TripStatusRing@components/trip-status-ring.tsx:151": {
+      "element": {
+        "file": "components/trip-status-ring.tsx",
+        "line": 151
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/trip-status-ring.tsx",
+          "properties": {
+            "fontSize": {
+              "line": 155,
+              "col": 30,
+              "endCol": 32,
+              "raw": "16"
+            }
+          }
+        }
+      ]
+    },
+    "TripStatusRing@components/trip-status-ring.tsx:162": {
+      "element": {
+        "file": "components/trip-status-ring.tsx",
+        "line": 162
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/trip-status-ring.tsx",
+          "properties": {
+            "width": {
+              "line": 162,
+              "col": 38,
+              "endCol": 39,
+              "raw": "1"
+            },
+            "height": {
+              "line": 162,
+              "col": 49,
+              "endCol": 51,
+              "raw": "14"
+            }
+          }
+        }
+      ]
+    },
+    "TripStatusRing@components/trip-status-ring.tsx:163": {
+      "element": {
+        "file": "components/trip-status-ring.tsx",
+        "line": 163
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/trip-status-ring.tsx",
+          "properties": {
+            "fontSize": {
+              "line": 167,
+              "col": 30,
+              "endCol": 32,
+              "raw": "16"
+            }
+          }
+        }
+      ]
+    },
+    "TripStatusRing@components/trip-status-ring.tsx:175": {
+      "element": {
+        "file": "components/trip-status-ring.tsx",
+        "line": 175
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/trip-status-ring.tsx",
+          "properties": {
+            "fontSize": {
+              "line": 179,
+              "col": 28,
+              "endCol": 30,
+              "raw": "14"
+            }
+          }
+        }
+      ]
+    },
+    "TripStatusRing@components/trip-status-ring.tsx:188": {
+      "element": {
+        "file": "components/trip-status-ring.tsx",
+        "line": 188
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/trip-status-ring.tsx",
+          "properties": {
+            "fontSize": {
+              "line": 191,
+              "col": 26,
+              "endCol": 28,
+              "raw": "13"
+            },
+            "textAlign": {
+              "line": 193,
+              "col": 27,
+              "endCol": 35,
+              "raw": "'center'"
+            },
+            "maxWidth": {
+              "line": 194,
+              "col": 26,
+              "endCol": 29,
+              "raw": "140"
+            }
+          }
+        }
+      ]
+    },
+    "TripEditModal@components/trip-edit-modal.tsx:49": {
+      "element": {
+        "file": "components/trip-edit-modal.tsx",
+        "line": 49
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/trip-edit-modal.tsx",
+          "properties": {
+            "flex": {
+              "line": 49,
+              "col": 27,
+              "endCol": 28,
+              "raw": "1"
+            },
+            "backgroundColor": {
+              "line": 49,
+              "col": 47,
+              "endCol": 64,
+              "raw": "'rgba(0,0,0,0.6)'"
+            },
+            "justifyContent": {
+              "line": 49,
+              "col": 82,
+              "endCol": 92,
+              "raw": "'flex-end'"
+            }
+          }
+        }
+      ]
+    },
+    "TripEditModal@components/trip-edit-modal.tsx:50": {
+      "element": {
+        "file": "components/trip-edit-modal.tsx",
+        "line": 50
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/trip-edit-modal.tsx",
+          "properties": {
+            "borderTopLeftRadius": {
+              "line": 53,
+              "col": 33,
+              "endCol": 35,
+              "raw": "24"
+            },
+            "borderTopRightRadius": {
+              "line": 54,
+              "col": 34,
+              "endCol": 36,
+              "raw": "24"
+            },
+            "borderCurve": {
+              "line": 55,
+              "col": 25,
+              "endCol": 37,
+              "raw": "'continuous'"
+            },
+            "maxHeight": {
+              "line": 56,
+              "col": 23,
+              "endCol": 28,
+              "raw": "'80%'"
+            }
+          }
+        }
+      ]
+    },
+    "TripEditModal@components/trip-edit-modal.tsx:60": {
+      "element": {
+        "file": "components/trip-edit-modal.tsx",
+        "line": 60
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/trip-edit-modal.tsx",
+          "properties": {
+            "alignItems": {
+              "line": 60,
+              "col": 37,
+              "endCol": 45,
+              "raw": "'center'"
+            },
+            "paddingTop": {
+              "line": 60,
+              "col": 59,
+              "endCol": 61,
+              "raw": "12"
+            },
+            "paddingBottom": {
+              "line": 60,
+              "col": 78,
+              "endCol": 79,
+              "raw": "8"
+            }
+          }
+        }
+      ]
+    },
+    "TripEditModal@components/trip-edit-modal.tsx:61": {
+      "element": {
+        "file": "components/trip-edit-modal.tsx",
+        "line": 61
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/trip-edit-modal.tsx",
+          "properties": {
+            "width": {
+              "line": 61,
+              "col": 34,
+              "endCol": 36,
+              "raw": "36"
+            },
+            "height": {
+              "line": 61,
+              "col": 46,
+              "endCol": 47,
+              "raw": "4"
+            },
+            "borderRadius": {
+              "line": 61,
+              "col": 63,
+              "endCol": 64,
+              "raw": "2"
+            }
+          }
+        }
+      ]
+    },
+    "TripEditModal@components/trip-edit-modal.tsx:66": {
+      "element": {
+        "file": "components/trip-edit-modal.tsx",
+        "line": 66
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/trip-edit-modal.tsx",
+          "properties": {
+            "flexDirection": {
+              "line": 66,
+              "col": 42,
+              "endCol": 47,
+              "raw": "'row'"
+            },
+            "justifyContent": {
+              "line": 66,
+              "col": 65,
+              "endCol": 80,
+              "raw": "'space-between'"
+            },
+            "alignItems": {
+              "line": 66,
+              "col": 94,
+              "endCol": 102,
+              "raw": "'center'"
+            }
+          }
+        }
+      ]
+    },
+    "TripEditModal@components/trip-edit-modal.tsx:67": {
+      "element": {
+        "file": "components/trip-edit-modal.tsx",
+        "line": 67
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/trip-edit-modal.tsx",
+          "properties": {
+            "fontSize": {
+              "line": 67,
+              "col": 63,
+              "endCol": 65,
+              "raw": "20"
+            }
+          }
+        }
+      ]
+    },
+    "TripEditModal@components/trip-edit-modal.tsx:76": {
+      "element": {
+        "file": "components/trip-edit-modal.tsx",
+        "line": 76
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/trip-edit-modal.tsx",
+          "properties": {
+            "borderRadius": {
+              "line": 79,
+              "col": 30,
+              "endCol": 32,
+              "raw": "14"
+            },
+            "borderCurve": {
+              "line": 80,
+              "col": 29,
+              "endCol": 41,
+              "raw": "'continuous'"
+            },
+            "padding": {
+              "line": 81,
+              "col": 25,
+              "endCol": 27,
+              "raw": "16"
+            },
+            "borderWidth": {
+              "line": 82,
+              "col": 29,
+              "endCol": 30,
+              "raw": "1"
+            },
+            "gap": {
+              "line": 84,
+              "col": 21,
+              "endCol": 23,
+              "raw": "14"
+            }
+          }
+        }
+      ]
+    },
+    "TripEditModal@components/trip-edit-modal.tsx:87": {
+      "element": {
+        "file": "components/trip-edit-modal.tsx",
+        "line": 87
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/trip-edit-modal.tsx",
+          "properties": {
+            "fontSize": {
+              "line": 89,
+              "col": 63,
+              "endCol": 65,
+              "raw": "18"
+            }
+          }
+        }
+      ]
+    },
+    "TripEditModal@components/trip-edit-modal.tsx:93": {
+      "element": {
+        "file": "components/trip-edit-modal.tsx",
+        "line": 93
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/trip-edit-modal.tsx",
+          "properties": {
+            "flexDirection": {
+              "line": 93,
+              "col": 44,
+              "endCol": 49,
+              "raw": "'row'"
+            },
+            "gap": {
+              "line": 93,
+              "col": 56,
+              "endCol": 58,
+              "raw": "24"
+            }
+          }
+        }
+      ]
+    },
+    "TripEditModal@components/trip-edit-modal.tsx:94": {
+      "element": {
+        "file": "components/trip-edit-modal.tsx",
+        "line": 94
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/trip-edit-modal.tsx",
+          "properties": {
+            "gap": {
+              "line": 94,
+              "col": 36,
+              "endCol": 37,
+              "raw": "2"
+            }
+          }
+        }
+      ]
+    },
+    "TripEditModal@components/trip-edit-modal.tsx:95": {
+      "element": {
+        "file": "components/trip-edit-modal.tsx",
+        "line": 95
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/trip-edit-modal.tsx",
+          "properties": {
+            "fontSize": {
+              "line": 95,
+              "col": 70,
+              "endCol": 72,
+              "raw": "12"
+            }
+          }
+        }
+      ]
+    },
+    "TripEditModal@components/trip-edit-modal.tsx:96": {
+      "element": {
+        "file": "components/trip-edit-modal.tsx",
+        "line": 96
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/trip-edit-modal.tsx",
+          "properties": {
+            "fontSize": {
+              "line": 96,
+              "col": 80,
+              "endCol": 82,
+              "raw": "14"
+            }
+          }
+        }
+      ]
+    },
+    "TripEditModal@components/trip-edit-modal.tsx:100": {
+      "element": {
+        "file": "components/trip-edit-modal.tsx",
+        "line": 100
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/trip-edit-modal.tsx",
+          "properties": {
+            "gap": {
+              "line": 100,
+              "col": 36,
+              "endCol": 37,
+              "raw": "2"
+            }
+          }
+        }
+      ]
+    },
+    "TripEditModal@components/trip-edit-modal.tsx:101": {
+      "element": {
+        "file": "components/trip-edit-modal.tsx",
+        "line": 101
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/trip-edit-modal.tsx",
+          "properties": {
+            "fontSize": {
+              "line": 101,
+              "col": 70,
+              "endCol": 72,
+              "raw": "12"
+            }
+          }
+        }
+      ]
+    },
+    "TripEditModal@components/trip-edit-modal.tsx:102": {
+      "element": {
+        "file": "components/trip-edit-modal.tsx",
+        "line": 102
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/trip-edit-modal.tsx",
+          "properties": {
+            "fontSize": {
+              "line": 102,
+              "col": 80,
+              "endCol": 82,
+              "raw": "14"
+            }
+          }
+        }
+      ]
+    },
+    "TripEditModal@components/trip-edit-modal.tsx:107": {
+      "element": {
+        "file": "components/trip-edit-modal.tsx",
+        "line": 107
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/trip-edit-modal.tsx",
+          "properties": {
+            "flexDirection": {
+              "line": 107,
+              "col": 44,
+              "endCol": 49,
+              "raw": "'row'"
+            },
+            "gap": {
+              "line": 107,
+              "col": 56,
+              "endCol": 58,
+              "raw": "24"
+            }
+          }
+        }
+      ]
+    },
+    "TripEditModal@components/trip-edit-modal.tsx:108": {
+      "element": {
+        "file": "components/trip-edit-modal.tsx",
+        "line": 108
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/trip-edit-modal.tsx",
+          "properties": {
+            "gap": {
+              "line": 108,
+              "col": 36,
+              "endCol": 37,
+              "raw": "2"
+            }
+          }
+        }
+      ]
+    },
+    "TripEditModal@components/trip-edit-modal.tsx:109": {
+      "element": {
+        "file": "components/trip-edit-modal.tsx",
+        "line": 109
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/trip-edit-modal.tsx",
+          "properties": {
+            "fontSize": {
+              "line": 109,
+              "col": 70,
+              "endCol": 72,
+              "raw": "12"
+            }
+          }
+        }
+      ]
+    },
+    "TripEditModal@components/trip-edit-modal.tsx:110": {
+      "element": {
+        "file": "components/trip-edit-modal.tsx",
+        "line": 110
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/trip-edit-modal.tsx",
+          "properties": {
+            "fontSize": {
+              "line": 110,
+              "col": 80,
+              "endCol": 82,
+              "raw": "14"
+            }
+          }
+        }
+      ]
+    },
+    "TripEditModal@components/trip-edit-modal.tsx:114": {
+      "element": {
+        "file": "components/trip-edit-modal.tsx",
+        "line": 114
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/trip-edit-modal.tsx",
+          "properties": {
+            "gap": {
+              "line": 114,
+              "col": 36,
+              "endCol": 37,
+              "raw": "2"
+            }
+          }
+        }
+      ]
+    },
+    "TripEditModal@components/trip-edit-modal.tsx:115": {
+      "element": {
+        "file": "components/trip-edit-modal.tsx",
+        "line": 115
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/trip-edit-modal.tsx",
+          "properties": {
+            "fontSize": {
+              "line": 115,
+              "col": 70,
+              "endCol": 72,
+              "raw": "12"
+            }
+          }
+        }
+      ]
+    },
+    "TripEditModal@components/trip-edit-modal.tsx:116": {
+      "element": {
+        "file": "components/trip-edit-modal.tsx",
+        "line": 116
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/trip-edit-modal.tsx",
+          "properties": {
+            "fontSize": {
+              "line": 116,
+              "col": 80,
+              "endCol": 82,
+              "raw": "14"
+            }
+          }
+        }
+      ]
+    },
+    "TripEditModal@components/trip-edit-modal.tsx:124": {
+      "element": {
+        "file": "components/trip-edit-modal.tsx",
+        "line": 124
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/trip-edit-modal.tsx",
+          "properties": {
+            "gap": {
+              "line": 124,
+              "col": 32,
+              "endCol": 33,
+              "raw": "8"
+            }
+          }
+        }
+      ]
+    },
+    "TripEditModal@components/trip-edit-modal.tsx:125": {
+      "element": {
+        "file": "components/trip-edit-modal.tsx",
+        "line": 125
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/trip-edit-modal.tsx",
+          "properties": {
+            "fontSize": {
+              "line": 125,
+              "col": 67,
+              "endCol": 69,
+              "raw": "14"
+            }
+          }
+        }
+      ]
+    },
+    "TripEditModal@components/trip-edit-modal.tsx:128": {
+      "element": {
+        "file": "components/trip-edit-modal.tsx",
+        "line": 128
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/trip-edit-modal.tsx",
+          "properties": {
+            "flexDirection": {
+              "line": 130,
+              "col": 33,
+              "endCol": 38,
+              "raw": "'row'"
+            },
+            "borderRadius": {
+              "line": 132,
+              "col": 32,
+              "endCol": 34,
+              "raw": "10"
+            },
+            "borderCurve": {
+              "line": 133,
+              "col": 31,
+              "endCol": 43,
+              "raw": "'continuous'"
+            },
+            "padding": {
+              "line": 134,
+              "col": 27,
+              "endCol": 28,
+              "raw": "3"
+            }
+          }
+        }
+      ]
+    },
+    "TripEditModal@components/trip-edit-modal.tsx:140": {
+      "element": {
+        "file": "components/trip-edit-modal.tsx",
+        "line": 140
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/trip-edit-modal.tsx",
+          "properties": {
+            "flex": {
+              "line": 144,
+              "col": 30,
+              "endCol": 31,
+              "raw": "1"
+            },
+            "paddingVertical": {
+              "line": 145,
+              "col": 41,
+              "endCol": 43,
+              "raw": "10"
+            },
+            "borderRadius": {
+              "line": 146,
+              "col": 38,
+              "endCol": 39,
+              "raw": "8"
+            },
+            "borderCurve": {
+              "line": 147,
+              "col": 37,
+              "endCol": 49,
+              "raw": "'continuous'"
+            },
+            "alignItems": {
+              "line": 151,
+              "col": 36,
+              "endCol": 44,
+              "raw": "'center'"
+            }
+          }
+        }
+      ]
+    },
+    "TripEditModal@components/trip-edit-modal.tsx:154": {
+      "element": {
+        "file": "components/trip-edit-modal.tsx",
+        "line": 154
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/trip-edit-modal.tsx",
+          "properties": {
+            "fontSize": {
+              "line": 157,
+              "col": 36,
+              "endCol": 38,
+              "raw": "14"
+            }
+          }
+        }
+      ]
+    },
+    "TripEditModal@components/trip-edit-modal.tsx:170": {
+      "element": {
+        "file": "components/trip-edit-modal.tsx",
+        "line": 170
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/trip-edit-modal.tsx",
+          "properties": {
+            "gap": {
+              "line": 170,
+              "col": 32,
+              "endCol": 33,
+              "raw": "8"
+            }
+          }
+        }
+      ]
+    },
+    "TripEditModal@components/trip-edit-modal.tsx:171": {
+      "element": {
+        "file": "components/trip-edit-modal.tsx",
+        "line": 171
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/trip-edit-modal.tsx",
+          "properties": {
+            "fontSize": {
+              "line": 171,
+              "col": 67,
+              "endCol": 69,
+              "raw": "14"
+            }
+          }
+        }
+      ]
+    },
+    "TripEditModal@components/trip-edit-modal.tsx:174": {
+      "element": {
+        "file": "components/trip-edit-modal.tsx",
+        "line": 174
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/trip-edit-modal.tsx",
+          "properties": {
+            "borderRadius": {
+              "line": 184,
+              "col": 32,
+              "endCol": 34,
+              "raw": "12"
+            },
+            "borderCurve": {
+              "line": 185,
+              "col": 31,
+              "endCol": 43,
+              "raw": "'continuous'"
+            },
+            "padding": {
+              "line": 186,
+              "col": 27,
+              "endCol": 29,
+              "raw": "14"
+            },
+            "fontSize": {
+              "line": 188,
+              "col": 28,
+              "endCol": 30,
+              "raw": "14"
+            },
+            "minHeight": {
+              "line": 190,
+              "col": 29,
+              "endCol": 31,
+              "raw": "80"
+            }
+          }
+        }
+      ]
+    },
+    "TripEditModal@components/trip-edit-modal.tsx:196": {
+      "element": {
+        "file": "components/trip-edit-modal.tsx",
+        "line": 196
+      },
+      "styles": [
+        {
+          "origin": "dynamic",
+          "resolvable": false
+        }
+      ]
+    },
+    "TripEditModal@components/trip-edit-modal.tsx:207": {
+      "element": {
+        "file": "components/trip-edit-modal.tsx",
+        "line": 207
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/trip-edit-modal.tsx",
+          "properties": {
+            "fontSize": {
+              "line": 207,
+              "col": 67,
+              "endCol": 69,
+              "raw": "16"
+            },
+            "color": {
+              "line": 207,
+              "col": 78,
+              "endCol": 84,
+              "raw": "'#fff'"
+            }
+          }
+        }
+      ]
+    },
+    "TripCard@components/trip-card.tsx:62": {
+      "element": {
+        "file": "components/trip-card.tsx",
+        "line": 62
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/trip-card.tsx",
+          "properties": {
+            "overflow": {
+              "line": 66,
+              "col": 25,
+              "endCol": 33,
+              "raw": "'hidden'"
+            },
+            "borderRadius": {
+              "line": 66,
+              "col": 49,
+              "endCol": 51,
+              "raw": "14"
+            },
+            "borderCurve": {
+              "line": 66,
+              "col": 66,
+              "endCol": 78,
+              "raw": "'continuous'"
+            }
+          }
+        }
+      ]
+    },
+    "TripCard@components/trip-card.tsx:69": {
+      "element": {
+        "file": "components/trip-card.tsx",
+        "line": 69
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/trip-card.tsx",
+          "properties": {
+            "position": {
+              "line": 72,
+              "col": 22,
+              "endCol": 32,
+              "raw": "'absolute'"
+            },
+            "right": {
+              "line": 73,
+              "col": 19,
+              "endCol": 20,
+              "raw": "0"
+            },
+            "top": {
+              "line": 74,
+              "col": 17,
+              "endCol": 18,
+              "raw": "0"
+            },
+            "bottom": {
+              "line": 75,
+              "col": 20,
+              "endCol": 21,
+              "raw": "0"
+            },
+            "borderRadius": {
+              "line": 78,
+              "col": 26,
+              "endCol": 28,
+              "raw": "14"
+            },
+            "borderCurve": {
+              "line": 79,
+              "col": 25,
+              "endCol": 37,
+              "raw": "'continuous'"
+            },
+            "alignItems": {
+              "line": 80,
+              "col": 24,
+              "endCol": 32,
+              "raw": "'center'"
+            },
+            "justifyContent": {
+              "line": 81,
+              "col": 28,
+              "endCol": 36,
+              "raw": "'center'"
+            },
+            "gap": {
+              "line": 82,
+              "col": 17,
+              "endCol": 18,
+              "raw": "4"
+            }
+          }
+        },
+        {
+          "origin": "dynamic",
+          "resolvable": false
+        }
+      ]
+    },
+    "TripCard@components/trip-card.tsx:87": {
+      "element": {
+        "file": "components/trip-card.tsx",
+        "line": 87
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/trip-card.tsx",
+          "properties": {
+            "alignItems": {
+              "line": 89,
+              "col": 31,
+              "endCol": 39,
+              "raw": "'center'"
+            },
+            "justifyContent": {
+              "line": 89,
+              "col": 57,
+              "endCol": 65,
+              "raw": "'center'"
+            },
+            "gap": {
+              "line": 89,
+              "col": 72,
+              "endCol": 73,
+              "raw": "4"
+            },
+            "padding": {
+              "line": 89,
+              "col": 84,
+              "endCol": 85,
+              "raw": "8"
+            }
+          }
+        }
+      ]
+    },
+    "TripCard@components/trip-card.tsx:92": {
+      "element": {
+        "file": "components/trip-card.tsx",
+        "line": 92
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/trip-card.tsx",
+          "properties": {
+            "fontSize": {
+              "line": 92,
+              "col": 63,
+              "endCol": 65,
+              "raw": "12"
+            },
+            "color": {
+              "line": 92,
+              "col": 74,
+              "endCol": 80,
+              "raw": "'#fff'"
+            }
+          }
+        }
+      ]
+    },
+    "TripCard@components/trip-card.tsx:100": {
+      "element": {
+        "file": "components/trip-card.tsx",
+        "line": 100
+      },
+      "styles": [
+        {
+          "origin": "dynamic",
+          "resolvable": false
+        }
+      ]
+    },
+    "TripCard@components/trip-card.tsx:101": {
+      "element": {
+        "file": "components/trip-card.tsx",
+        "line": 101
+      },
+      "styles": [
+        {
+          "origin": "dynamic",
+          "resolvable": false
+        }
+      ]
+    },
+    "TripCard@components/trip-card.tsx:114": {
+      "element": {
+        "file": "components/trip-card.tsx",
+        "line": 114
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/trip-card.tsx",
+          "properties": {
+            "flexDirection": {
+              "line": 114,
+              "col": 42,
+              "endCol": 47,
+              "raw": "'row'"
+            },
+            "justifyContent": {
+              "line": 114,
+              "col": 65,
+              "endCol": 80,
+              "raw": "'space-between'"
+            },
+            "alignItems": {
+              "line": 114,
+              "col": 94,
+              "endCol": 102,
+              "raw": "'center'"
+            },
+            "marginBottom": {
+              "line": 114,
+              "col": 118,
+              "endCol": 119,
+              "raw": "8"
+            }
+          }
+        }
+      ]
+    },
+    "TripCard@components/trip-card.tsx:115": {
+      "element": {
+        "file": "components/trip-card.tsx",
+        "line": 115
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/trip-card.tsx",
+          "properties": {
+            "fontSize": {
+              "line": 115,
+              "col": 66,
+              "endCol": 68,
+              "raw": "13"
+            }
+          }
+        }
+      ]
+    },
+    "TripCard@components/trip-card.tsx:118": {
+      "element": {
+        "file": "components/trip-card.tsx",
+        "line": 118
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/trip-card.tsx",
+          "properties": {
+            "paddingHorizontal": {
+              "line": 121,
+              "col": 37,
+              "endCol": 39,
+              "raw": "10"
+            },
+            "paddingVertical": {
+              "line": 122,
+              "col": 35,
+              "endCol": 36,
+              "raw": "3"
+            },
+            "borderRadius": {
+              "line": 123,
+              "col": 32,
+              "endCol": 33,
+              "raw": "6"
+            },
+            "borderCurve": {
+              "line": 124,
+              "col": 31,
+              "endCol": 43,
+              "raw": "'continuous'"
+            }
+          }
+        }
+      ]
+    },
+    "TripCard@components/trip-card.tsx:127": {
+      "element": {
+        "file": "components/trip-card.tsx",
+        "line": 127
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/trip-card.tsx",
+          "properties": {
+            "fontSize": {
+              "line": 127,
+              "col": 69,
+              "endCol": 71,
+              "raw": "11"
+            },
+            "color": {
+              "line": 127,
+              "col": 80,
+              "endCol": 86,
+              "raw": "'#fff'"
+            }
+          }
+        }
+      ]
+    },
+    "TripCard@components/trip-card.tsx:134": {
+      "element": {
+        "file": "components/trip-card.tsx",
+        "line": 134
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/trip-card.tsx",
+          "properties": {
+            "fontSize": {
+              "line": 136,
+              "col": 61,
+              "endCol": 63,
+              "raw": "16"
+            },
+            "marginBottom": {
+              "line": 136,
+              "col": 106,
+              "endCol": 107,
+              "raw": "6"
+            }
+          }
+        }
+      ]
+    },
+    "TripCard@components/trip-card.tsx:143": {
+      "element": {
+        "file": "components/trip-card.tsx",
+        "line": 143
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/trip-card.tsx",
+          "properties": {
+            "flexDirection": {
+              "line": 143,
+              "col": 42,
+              "endCol": 47,
+              "raw": "'row'"
+            },
+            "alignItems": {
+              "line": 143,
+              "col": 61,
+              "endCol": 69,
+              "raw": "'center'"
+            },
+            "gap": {
+              "line": 143,
+              "col": 76,
+              "endCol": 78,
+              "raw": "16"
+            }
+          }
+        }
+      ]
+    },
+    "TripCard@components/trip-card.tsx:144": {
+      "element": {
+        "file": "components/trip-card.tsx",
+        "line": 144
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/trip-card.tsx",
+          "properties": {
+            "flexDirection": {
+              "line": 144,
+              "col": 44,
+              "endCol": 49,
+              "raw": "'row'"
+            },
+            "alignItems": {
+              "line": 144,
+              "col": 63,
+              "endCol": 71,
+              "raw": "'center'"
+            },
+            "gap": {
+              "line": 144,
+              "col": 78,
+              "endCol": 79,
+              "raw": "4"
+            }
+          }
+        }
+      ]
+    },
+    "TripCard@components/trip-card.tsx:146": {
+      "element": {
+        "file": "components/trip-card.tsx",
+        "line": 146
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/trip-card.tsx",
+          "properties": {
+            "fontSize": {
+              "line": 150,
+              "col": 30,
+              "endCol": 32,
+              "raw": "13"
+            }
+          }
+        }
+      ]
+    },
+    "TripCard@components/trip-card.tsx:158": {
+      "element": {
+        "file": "components/trip-card.tsx",
+        "line": 158
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/trip-card.tsx",
+          "properties": {
+            "flexDirection": {
+              "line": 158,
+              "col": 44,
+              "endCol": 49,
+              "raw": "'row'"
+            },
+            "alignItems": {
+              "line": 158,
+              "col": 63,
+              "endCol": 71,
+              "raw": "'center'"
+            },
+            "gap": {
+              "line": 158,
+              "col": 78,
+              "endCol": 79,
+              "raw": "4"
+            }
+          }
+        }
+      ]
+    },
+    "TripCard@components/trip-card.tsx:160": {
+      "element": {
+        "file": "components/trip-card.tsx",
+        "line": 160
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/trip-card.tsx",
+          "properties": {
+            "fontSize": {
+              "line": 164,
+              "col": 30,
+              "endCol": 32,
+              "raw": "13"
+            }
+          }
+        }
+      ]
+    },
+    "SettingsSection@components/settings-section.tsx:12": {
+      "element": {
+        "file": "components/settings-section.tsx",
+        "line": 12
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/settings-section.tsx",
+          "properties": {
+            "gap": {
+              "line": 12,
+              "col": 24,
+              "endCol": 26,
+              "raw": "12"
+            }
+          }
+        }
+      ]
+    },
+    "SettingsSection@components/settings-section.tsx:13": {
+      "element": {
+        "file": "components/settings-section.tsx",
+        "line": 13
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/settings-section.tsx",
+          "properties": {
+            "fontSize": {
+              "line": 16,
+              "col": 20,
+              "endCol": 22,
+              "raw": "16"
+            }
+          }
+        }
+      ]
+    },
+    "SettingsSection@components/settings-section.tsx:22": {
+      "element": {
+        "file": "components/settings-section.tsx",
+        "line": 22
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/settings-section.tsx",
+          "properties": {
+            "borderRadius": {
+              "line": 25,
+              "col": 24,
+              "endCol": 26,
+              "raw": "14"
+            },
+            "borderCurve": {
+              "line": 26,
+              "col": 23,
+              "endCol": 35,
+              "raw": "'continuous'"
+            },
+            "padding": {
+              "line": 27,
+              "col": 19,
+              "endCol": 21,
+              "raw": "16"
+            },
+            "borderWidth": {
+              "line": 28,
+              "col": 23,
+              "endCol": 24,
+              "raw": "1"
+            },
+            "gap": {
+              "line": 30,
+              "col": 15,
+              "endCol": 17,
+              "raw": "16"
+            }
+          }
+        }
+      ]
+    },
+    "UnitToggle@components/unit-toggle.tsx:12": {
+      "element": {
+        "file": "components/unit-toggle.tsx",
+        "line": 12
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/unit-toggle.tsx",
+          "properties": {
+            "flexDirection": {
+              "line": 14,
+              "col": 23,
+              "endCol": 28,
+              "raw": "'row'"
+            },
+            "borderRadius": {
+              "line": 16,
+              "col": 22,
+              "endCol": 24,
+              "raw": "10"
+            },
+            "borderCurve": {
+              "line": 17,
+              "col": 21,
+              "endCol": 33,
+              "raw": "'continuous'"
+            },
+            "padding": {
+              "line": 18,
+              "col": 17,
+              "endCol": 18,
+              "raw": "3"
+            }
+          }
+        }
+      ]
+    },
+    "UnitToggle@components/unit-toggle.tsx:25": {
+      "element": {
+        "file": "components/unit-toggle.tsx",
+        "line": 25
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/unit-toggle.tsx",
+          "properties": {
+            "flex": {
+              "line": 29,
+              "col": 20,
+              "endCol": 21,
+              "raw": "1"
+            },
+            "paddingVertical": {
+              "line": 30,
+              "col": 31,
+              "endCol": 32,
+              "raw": "8"
+            },
+            "borderRadius": {
+              "line": 31,
+              "col": 28,
+              "endCol": 29,
+              "raw": "8"
+            },
+            "borderCurve": {
+              "line": 32,
+              "col": 27,
+              "endCol": 39,
+              "raw": "'continuous'"
+            },
+            "alignItems": {
+              "line": 34,
+              "col": 26,
+              "endCol": 34,
+              "raw": "'center'"
+            }
+          }
+        }
+      ]
+    },
+    "UnitToggle@components/unit-toggle.tsx:37": {
+      "element": {
+        "file": "components/unit-toggle.tsx",
+        "line": 37
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/unit-toggle.tsx",
+          "properties": {
+            "fontSize": {
+              "line": 40,
+              "col": 26,
+              "endCol": 28,
+              "raw": "13"
+            }
+          }
+        }
+      ]
+    },
+    "TimePickerField@components/time-picker-field.tsx:27": {
+      "element": {
+        "file": "components/time-picker-field.tsx",
+        "line": 27
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/time-picker-field.tsx",
+          "properties": {
+            "flex": {
+              "line": 27,
+              "col": 25,
+              "endCol": 26,
+              "raw": "1"
+            },
+            "gap": {
+              "line": 27,
+              "col": 33,
+              "endCol": 34,
+              "raw": "6"
+            }
+          }
+        }
+      ]
+    },
+    "TimePickerField@components/time-picker-field.tsx:28": {
+      "element": {
+        "file": "components/time-picker-field.tsx",
+        "line": 28
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/time-picker-field.tsx",
+          "properties": {
+            "fontSize": {
+              "line": 28,
+              "col": 57,
+              "endCol": 59,
+              "raw": "13"
+            }
+          }
+        }
+      ]
+    },
+    "TimePickerField@components/time-picker-field.tsx:31": {
+      "element": {
+        "file": "components/time-picker-field.tsx",
+        "line": 31
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/time-picker-field.tsx",
+          "properties": {
+            "flexDirection": {
+              "line": 34,
+              "col": 25,
+              "endCol": 30,
+              "raw": "'row'"
+            },
+            "alignItems": {
+              "line": 35,
+              "col": 22,
+              "endCol": 30,
+              "raw": "'center'"
+            },
+            "justifyContent": {
+              "line": 36,
+              "col": 26,
+              "endCol": 41,
+              "raw": "'space-between'"
+            },
+            "borderRadius": {
+              "line": 38,
+              "col": 24,
+              "endCol": 26,
+              "raw": "10"
+            },
+            "borderCurve": {
+              "line": 39,
+              "col": 23,
+              "endCol": 35,
+              "raw": "'continuous'"
+            },
+            "paddingHorizontal": {
+              "line": 40,
+              "col": 29,
+              "endCol": 31,
+              "raw": "12"
+            },
+            "paddingVertical": {
+              "line": 41,
+              "col": 27,
+              "endCol": 29,
+              "raw": "10"
+            }
+          }
+        }
+      ]
+    },
+    "TimePickerField@components/time-picker-field.tsx:44": {
+      "element": {
+        "file": "components/time-picker-field.tsx",
+        "line": 44
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/time-picker-field.tsx",
+          "properties": {
+            "fontSize": {
+              "line": 47,
+              "col": 22,
+              "endCol": 24,
+              "raw": "14"
+            }
+          }
+        }
+      ]
+    },
+    "TimePickerField@components/time-picker-field.tsx:63": {
+      "element": {
+        "file": "components/time-picker-field.tsx",
+        "line": 63
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/time-picker-field.tsx",
+          "properties": {
+            "flex": {
+              "line": 64,
+              "col": 25,
+              "endCol": 26,
+              "raw": "1"
+            },
+            "backgroundColor": {
+              "line": 64,
+              "col": 45,
+              "endCol": 62,
+              "raw": "'rgba(0,0,0,0.6)'"
+            },
+            "justifyContent": {
+              "line": 64,
+              "col": 80,
+              "endCol": 88,
+              "raw": "'center'"
+            },
+            "alignItems": {
+              "line": 64,
+              "col": 102,
+              "endCol": 110,
+              "raw": "'center'"
+            }
+          }
+        }
+      ]
+    },
+    "TimePickerField@components/time-picker-field.tsx:67": {
+      "element": {
+        "file": "components/time-picker-field.tsx",
+        "line": 67
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/time-picker-field.tsx",
+          "properties": {
+            "borderRadius": {
+              "line": 70,
+              "col": 28,
+              "endCol": 30,
+              "raw": "16"
+            },
+            "borderCurve": {
+              "line": 71,
+              "col": 27,
+              "endCol": 39,
+              "raw": "'continuous'"
+            },
+            "padding": {
+              "line": 72,
+              "col": 23,
+              "endCol": 25,
+              "raw": "20"
+            },
+            "width": {
+              "line": 73,
+              "col": 21,
+              "endCol": 24,
+              "raw": "280"
+            },
+            "maxHeight": {
+              "line": 74,
+              "col": 25,
+              "endCol": 28,
+              "raw": "360"
+            },
+            "borderWidth": {
+              "line": 75,
+              "col": 27,
+              "endCol": 28,
+              "raw": "1"
+            }
+          }
+        }
+      ]
+    },
+    "TimePickerField@components/time-picker-field.tsx:80": {
+      "element": {
+        "file": "components/time-picker-field.tsx",
+        "line": 80
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/time-picker-field.tsx",
+          "properties": {
+            "fontSize": {
+              "line": 83,
+              "col": 26,
+              "endCol": 28,
+              "raw": "16"
+            },
+            "marginBottom": {
+              "line": 85,
+              "col": 30,
+              "endCol": 32,
+              "raw": "16"
+            },
+            "textAlign": {
+              "line": 86,
+              "col": 27,
+              "endCol": 35,
+              "raw": "'center'"
+            }
+          }
+        }
+      ]
+    },
+    "TimePickerField@components/time-picker-field.tsx:92": {
+      "element": {
+        "file": "components/time-picker-field.tsx",
+        "line": 92
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/time-picker-field.tsx",
+          "properties": {
+            "flexDirection": {
+              "line": 92,
+              "col": 42,
+              "endCol": 47,
+              "raw": "'row'"
+            },
+            "flexWrap": {
+              "line": 92,
+              "col": 59,
+              "endCol": 65,
+              "raw": "'wrap'"
+            },
+            "gap": {
+              "line": 92,
+              "col": 72,
+              "endCol": 73,
+              "raw": "8"
+            },
+            "justifyContent": {
+              "line": 92,
+              "col": 91,
+              "endCol": 99,
+              "raw": "'center'"
+            }
+          }
+        }
+      ]
+    },
+    "TimePickerField@components/time-picker-field.tsx:98": {
+      "element": {
+        "file": "components/time-picker-field.tsx",
+        "line": 98
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/time-picker-field.tsx",
+          "properties": {
+            "paddingHorizontal": {
+              "line": 105,
+              "col": 43,
+              "endCol": 45,
+              "raw": "12"
+            },
+            "paddingVertical": {
+              "line": 106,
+              "col": 41,
+              "endCol": 42,
+              "raw": "8"
+            },
+            "borderRadius": {
+              "line": 107,
+              "col": 38,
+              "endCol": 39,
+              "raw": "8"
+            },
+            "borderCurve": {
+              "line": 108,
+              "col": 37,
+              "endCol": 49,
+              "raw": "'continuous'"
+            },
+            "minWidth": {
+              "line": 110,
+              "col": 34,
+              "endCol": 36,
+              "raw": "72"
+            },
+            "alignItems": {
+              "line": 111,
+              "col": 36,
+              "endCol": 44,
+              "raw": "'center'"
+            }
+          }
+        }
+      ]
+    },
+    "TimePickerField@components/time-picker-field.tsx:114": {
+      "element": {
+        "file": "components/time-picker-field.tsx",
+        "line": 114
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/time-picker-field.tsx",
+          "properties": {
+            "fontSize": {
+              "line": 117,
+              "col": 36,
+              "endCol": 38,
+              "raw": "13"
             }
           }
         }
