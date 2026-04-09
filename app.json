@@ -16,7 +16,8 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.craggles.miletracker"
     },
     "web": {
       "bundler": "metro",
@@ -37,6 +38,13 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "owner": "craggles_86",
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "8c311382-907c-4530-9fb3-84a3f0d8c38c"
+      }
     }
   }
 }
