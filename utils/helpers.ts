@@ -152,6 +152,8 @@ export function getDefaultSettings(): Settings {
     userName: '',
     vehicleMake: '',
     vehicleModel: '',
+    vehicleYear: '',
+    vehicleRegistration: '',
     distanceUnit: 'km',
     businessHoursPerDay: {
       Mon: { enabled: true, startTime: '09:00', endTime: '17:00' },

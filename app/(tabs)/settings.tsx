@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { View, Text, TextInput, ScrollView, Switch, Pressable } from 'react-native';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -8,6 +9,7 @@ import { useAppStore } from '@/store/useAppStore';
 import { SettingsSection } from '@/components/settings-section';
 import { UnitToggle } from '@/components/unit-toggle';
 import { BusinessDayRow } from '@/components/business-day-row';
+import { LegalDisclaimerModal } from '@/components/legal-disclaimer-modal';
 import { generateCSV, exportCSV } from '@/utils/csv-export';
 import type { DaySchedule } from '@/store/types';
 
@@ -18,6 +20,7 @@ export default function SettingsScreen() {
   const settings = useAppStore((s) => s.settings);
   const updateSettings = useAppStore((s) => s.updateSettings);
   const trips = useAppStore((s) => s.trips);
+  const [disclaimerVisible, setDisclaimerVisible] = useState(false);
 
   const handleDayChange = (day: string, schedule: DaySchedule) => {
     updateSettings({
@@ -39,7 +42,7 @@ export default function SettingsScreen() {
       contentContainerStyle={{
         paddingTop: insets.top + 16,
         paddingHorizontal: 20,
-        paddingBottom: 40,
+        paddingBottom: insets.bottom + 40,
         gap: 24,
       }}
       keyboardShouldPersistTaps="handled"
@@ -80,6 +83,27 @@ export default function SettingsScreen() {
             onChangeText={(t) => updateSettings({ vehicleModel: t })}
             placeholder="Vehicle Model (e.g. Corolla)"
             placeholderTextColor={Colors.textSecondary}
+            style={inputStyle}
+          />
+          <TextInput
+            value={settings.vehicleYear}
+            onChangeText={(t) => {
+              // Allow only numeric characters, max 4 digits
+              const cleaned = t.replace(/[^0-9]/g, '').slice(0, 4);
+              updateSettings({ vehicleYear: cleaned });
+            }}
+            placeholder="Vehicle Year (e.g. 2019)"
+            placeholderTextColor={Colors.textSecondary}
+            keyboardType="numeric"
+            maxLength={4}
+            style={inputStyle}
+          />
+          <TextInput
+            value={settings.vehicleRegistration}
+            onChangeText={(t) => updateSettings({ vehicleRegistration: t })}
+            placeholder="Registration / License Plate"
+            placeholderTextColor={Colors.textSecondary}
+            autoCapitalize="characters"
             style={inputStyle}
           />
           <TextInput
@@ -295,6 +319,55 @@ export default function SettingsScreen() {
           </View>
         </View>
       </Animated.View>
+
+      {/* Legal Disclaimer */}
+      <Animated.View entering={FadeInDown.delay(700).duration(400)}>
+        <Pressable
+          onPress={() => setDisclaimerVisible(true)}
+          style={({ pressed }) => ({
+            backgroundColor: Colors.card,
+            borderRadius: 14,
+            borderCurve: 'continuous',
+            padding: 16,
+            borderWidth: 1,
+            borderColor: Colors.border,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            opacity: pressed ? 0.7 : 1,
+          })}
+        >
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+            <View
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: 18,
+                backgroundColor: 'rgba(148, 163, 184, 0.15)',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Ionicons name="document-text" size={18} color={Colors.textSecondary} />
+            </View>
+            <Text
+              style={{
+                fontFamily: Fonts.semiBold,
+                fontSize: 15,
+                color: Colors.textPrimary,
+              }}
+            >
+              Legal Disclaimer
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={Colors.textSecondary} />
+        </Pressable>
+      </Animated.View>
+
+      <LegalDisclaimerModal
+        visible={disclaimerVisible}
+        onClose={() => setDisclaimerVisible(false)}
+      />
     </ScrollView>
   );
 }

@@ -67,6 +67,8 @@ export interface Settings {
   userName: string;
   vehicleMake: string;
   vehicleModel: string;
+  vehicleYear: string;
+  vehicleRegistration: string;
   distanceUnit: 'km' | 'miles';
   businessHoursPerDay: BusinessHoursPerDay;
   logAllAsBusiness: boolean;

@@ -25,6 +25,8 @@ export function generateCSV(
   lines.push('MileageTrack — Mileage Log Export');
   lines.push(`Name,${csvEscape(settings.userName || 'Not set')}`);
   lines.push(`Vehicle,${csvEscape([settings.vehicleMake, settings.vehicleModel].filter(Boolean).join(' ') || 'Not set')}`);
+  lines.push(`Year,${csvEscape(settings.vehicleYear || 'Not set')}`);
+  lines.push(`Registration,${csvEscape(settings.vehicleRegistration || 'Not set')}`);
   lines.push(`Starting Odometer (${unitLabel}),${startOdo.toFixed(1)}`);
   lines.push(`Ending Odometer (${unitLabel}),${endOdo.toFixed(1)}`);
   lines.push(`Business Mileage %,${businessPct}%`);
