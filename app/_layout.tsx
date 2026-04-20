@@ -7,6 +7,7 @@ import { useEffect } from 'react';
 import { ThemeProvider, DarkTheme } from '@react-navigation/native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Colors } from '@/constants/Colors';
+import { DisclaimerGate } from '@/components/disclaimer-gate';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -40,18 +41,20 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ThemeProvider value={appTheme}>
         <StatusBar style="light" />
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="(tabs)" />
-          <Stack.Screen
-            name="odometer-modal"
-            options={{
-              presentation: 'formSheet',
-              headerShown: false,
-              sheetGrabberVisible: true,
-              sheetAllowedDetents: [0.55, 0.75],
-            }}
-          />
-        </Stack>
+        <DisclaimerGate>
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="(tabs)" />
+            <Stack.Screen
+              name="odometer-modal"
+              options={{
+                presentation: 'formSheet',
+                headerShown: false,
+                sheetGrabberVisible: true,
+                sheetAllowedDetents: [0.55, 0.75],
+              }}
+            />
+          </Stack>
+        </DisclaimerGate>
       </ThemeProvider>
     </GestureHandlerRootView>
   );
