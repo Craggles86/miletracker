@@ -1,20 +1,49 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useState } from 'react';
+import { AppState, Platform } from 'react-native';
+import type { AppStateStatus } from 'react-native';
 import { useAppStore } from '@/store/useAppStore';
-import { haversineDistance } from '@/utils/helpers';
-
-const SPEED_THRESHOLD_KMH = 10;
-const STATIONARY_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
-const STATIONARY_RADIUS_M = 20;
-const TRACKING_INTERVAL_MS = 3000;
-const ROUTE_POINT_MIN_DISTANCE_M = 15; // minimum distance between route points
+import {
+  processLocationUpdate,
+  startBackgroundLocationUpdates,
+  stopBackgroundLocationUpdates,
+  isBackgroundTaskRegistered,
+} from '@/utils/background-location-task';
 
 type LocationModule = typeof import('expo-location');
+type NotificationsModule = typeof import('expo-notifications');
 
+export interface PermissionState {
+  foreground: 'granted' | 'denied' | 'undetermined';
+  background: 'granted' | 'denied' | 'undetermined';
+  notifications: 'granted' | 'denied' | 'undetermined';
+}
+
+const initialPermissions: PermissionState = {
+  foreground: 'undetermined',
+  background: 'undetermined',
+  notifications: 'undetermined',
+};
+
+/**
+ * Hook that drives the MileageTrack location tracking engine.
+ *
+ * - On native: registers the background location task so trips are tracked
+ *   even when the app is fully closed. Falls back to a foreground watcher
+ *   while the app is active to update the UI more smoothly.
+ * - On web: uses `watchPositionAsync` only. Background tracking isn't
+ *   supported on the web; feature gates keep the code safe.
+ */
 export function useLocationTracking() {
   const activeTrip = useAppStore((s) => s.activeTrip);
-  const locationModuleRef = useRef<LocationModule | null>(null);
-  const watchRef = useRef<{ remove: () => void } | null>(null);
+  const [permissions, setPermissions] = useState<PermissionState>(initialPermissions);
+  const [backgroundActive, setBackgroundActive] = useState(false);
 
+  const locationModuleRef = useRef<LocationModule | null>(null);
+  const notificationsModuleRef = useRef<NotificationsModule | null>(null);
+  const foregroundWatchRef = useRef<{ remove: () => void } | null>(null);
+  const mountedRef = useRef(true);
+
+  // ── Module loaders ──────────────────────────────────────────────────────
   const getLocation = useCallback(async (): Promise<LocationModule | null> => {
     if (locationModuleRef.current) return locationModuleRef.current;
     try {
@@ -26,152 +55,183 @@ export function useLocationTracking() {
     }
   }, []);
 
-  const requestPermissions = useCallback(async (): Promise<boolean> => {
-    const Location = await getLocation();
-    if (!Location) return false;
-    const { status } = await Location.requestForegroundPermissionsAsync();
-    return status === 'granted';
-  }, [getLocation]);
+  const getNotifications = useCallback(async (): Promise<NotificationsModule | null> => {
+    if (notificationsModuleRef.current) return notificationsModuleRef.current;
+    try {
+      const mod = await import('expo-notifications');
+      notificationsModuleRef.current = mod;
+      return mod;
+    } catch {
+      return null;
+    }
+  }, []);
 
-  // Reverse geocode to suburb name only
-  const reverseGeocode = useCallback(
-    async (lat: number, lng: number): Promise<string> => {
+  // ── Permission handling ────────────────────────────────────────────────
+  const requestPermissions = useCallback(async (): Promise<PermissionState> => {
+    const Location = await getLocation();
+    const Notifications = await getNotifications();
+
+    const next: PermissionState = { ...initialPermissions };
+
+    if (Location) {
       try {
-        const Location = await getLocation();
-        if (!Location) return 'Unknown';
-        const results = await Location.reverseGeocodeAsync({ latitude: lat, longitude: lng });
-        if (results.length > 0) {
-          return results[0].subregion || results[0].city || results[0].district || 'Unknown';
+        const fg = await Location.requestForegroundPermissionsAsync();
+        next.foreground = fg.status as PermissionState['foreground'];
+
+        if (fg.status === 'granted' && Platform.OS !== 'web') {
+          const bg = await Location.requestBackgroundPermissionsAsync();
+          next.background = bg.status as PermissionState['background'];
+        } else {
+          next.background = fg.status === 'granted' ? 'undetermined' : 'denied';
         }
       } catch {
-        // Geocoding can fail silently
+        next.foreground = 'denied';
+        next.background = 'denied';
       }
-      return 'Unknown';
-    },
-    [getLocation]
-  );
+    }
 
-  const startMonitoring = useCallback(async () => {
-    const hasPermission = await requestPermissions();
-    if (!hasPermission) return;
+    if (Notifications) {
+      try {
+        const existing = await Notifications.getPermissionsAsync();
+        if (existing.status === 'granted') {
+          next.notifications = 'granted';
+        } else {
+          const req = await Notifications.requestPermissionsAsync();
+          next.notifications = req.status as PermissionState['notifications'];
+        }
+      } catch {
+        next.notifications = 'denied';
+      }
+    }
 
+    if (mountedRef.current) setPermissions(next);
+    return next;
+  }, [getLocation, getNotifications]);
+
+  // ── Foreground watcher (UI refresh while app is visible) ───────────────
+  const startForegroundWatcher = useCallback(async () => {
+    if (foregroundWatchRef.current) return;
     const Location = await getLocation();
     if (!Location) return;
 
-    const subscription = await Location.watchPositionAsync(
-      {
-        accuracy: Location.Accuracy.High,
-        timeInterval: TRACKING_INTERVAL_MS,
-        distanceInterval: 5,
-      },
-      (location) => {
-        const { latitude, longitude, speed: rawSpeed } = location.coords;
-        const speedKmh = Math.max(0, (rawSpeed ?? 0) * 3.6);
-        const state = useAppStore.getState();
-        const trip = state.activeTrip;
-
-        if (!trip.isTracking) {
-          // Check if we should auto-start
-          if (speedKmh >= SPEED_THRESHOLD_KMH) {
-            state.startTrip(latitude, longitude);
-          }
-          return;
+    try {
+      const sub = await Location.watchPositionAsync(
+        {
+          accuracy: Location.Accuracy.High,
+          timeInterval: 2000,
+          distanceInterval: 5,
+        },
+        (location) => {
+          const speedKmh = Math.max(0, (location.coords.speed ?? 0) * 3.6);
+          processLocationUpdate({
+            latitude: location.coords.latitude,
+            longitude: location.coords.longitude,
+            speedKmh,
+            timestamp: location.timestamp,
+          }).catch(() => {});
         }
+      );
+      foregroundWatchRef.current = sub;
+    } catch (err) {
+      console.warn('[LocationTracking] watchPositionAsync failed', err);
+    }
+  }, [getLocation]);
 
-        // Currently tracking — calculate distance increment
-        let addedDistance = 0;
-        if (trip.lastPosition) {
-          addedDistance =
-            haversineDistance(
-              trip.lastPosition.lat,
-              trip.lastPosition.lng,
-              latitude,
-              longitude
-            ) / 1000;
-        }
+  const stopForegroundWatcher = useCallback(() => {
+    foregroundWatchRef.current?.remove();
+    foregroundWatchRef.current = null;
+  }, []);
 
-        const newDistance = trip.currentDistance + addedDistance;
+  // ── Background task control ────────────────────────────────────────────
+  const ensureBackgroundRunning = useCallback(async () => {
+    if (Platform.OS === 'web') return false;
+    const ok = await startBackgroundLocationUpdates();
+    if (mountedRef.current) setBackgroundActive(ok);
+    return ok;
+  }, []);
 
-        // Record route point if moved enough
-        const lastRoutePoint =
-          trip.routePoints.length > 0
-            ? trip.routePoints[trip.routePoints.length - 1]
-            : null;
-        if (
-          !lastRoutePoint ||
-          haversineDistance(lastRoutePoint.lat, lastRoutePoint.lng, latitude, longitude) >=
-            ROUTE_POINT_MIN_DISTANCE_M
-        ) {
-          state.addRoutePoint({ lat: latitude, lng: longitude });
-        }
+  const stopBackground = useCallback(async () => {
+    if (Platform.OS === 'web') return;
+    await stopBackgroundLocationUpdates();
+    if (mountedRef.current) setBackgroundActive(false);
+  }, []);
 
-        // Stationary detection using the first stationary position
-        const stationaryAnchor = trip.stationaryPosition ?? trip.lastPosition;
-        const distToAnchor = stationaryAnchor
-          ? haversineDistance(stationaryAnchor.lat, stationaryAnchor.lng, latitude, longitude)
-          : Infinity;
+  // ── Public start/stop (called by UI or auto-start on mount) ────────────
+  const startMonitoring = useCallback(async () => {
+    const perms = await requestPermissions();
+    if (perms.foreground !== 'granted') return false;
 
-        if (distToAnchor < STATIONARY_RADIUS_M) {
-          const stationaryStart =
-            trip.stationaryStartTime ?? new Date().toISOString();
-          const stationaryPos =
-            trip.stationaryPosition ?? { lat: latitude, lng: longitude };
-          const elapsed = Date.now() - new Date(stationaryStart).getTime();
+    // Web: foreground only
+    if (Platform.OS === 'web') {
+      await startForegroundWatcher();
+      return true;
+    }
 
-          if (elapsed >= STATIONARY_TIMEOUT_MS) {
-            // End trip — geocode endpoints
-            const routePts = trip.routePoints;
-            const startPt = routePts.length > 0 ? routePts[0] : null;
-            const endPt = routePts.length > 0 ? routePts[routePts.length - 1] : null;
+    // Native: start the background task so the trip keeps tracking when
+    // the app is backgrounded/killed. If background permission is denied
+    // we fall back to a foreground-only watcher.
+    if (perms.background === 'granted') {
+      await ensureBackgroundRunning();
+    }
+    await startForegroundWatcher();
+    return true;
+  }, [requestPermissions, startForegroundWatcher, ensureBackgroundRunning]);
 
-            // Fire async geocoding then end trip
-            (async () => {
-              const startSuburb = startPt
-                ? await reverseGeocode(startPt.lat, startPt.lng)
-                : 'Unknown';
-              const endSuburb = endPt
-                ? await reverseGeocode(endPt.lat, endPt.lng)
-                : 'Unknown';
-              useAppStore.getState().endTrip(startSuburb, endSuburb);
-            })();
-            return;
-          }
+  const stopMonitoring = useCallback(async () => {
+    stopForegroundWatcher();
+    await stopBackground();
+  }, [stopForegroundWatcher, stopBackground]);
 
-          state.updateActiveTrip({
-            currentSpeed: speedKmh,
-            currentDistance: newDistance,
-            stationaryStartTime: stationaryStart,
-            stationaryPosition: stationaryPos,
-          });
-        } else {
-          state.updateActiveTrip({
-            currentSpeed: speedKmh,
-            currentDistance: newDistance,
-            lastPosition: { lat: latitude, lng: longitude },
-            stationaryStartTime: null,
-            stationaryPosition: null,
-          });
+  // ── Lifecycle: auto-start on mount, reconcile on foreground ────────────
+  useEffect(() => {
+    mountedRef.current = true;
+    startMonitoring();
+
+    // If the background task is already registered (e.g. app was killed and
+    // the OS relaunched us), sync the indicator state so the UI is accurate.
+    isBackgroundTaskRegistered()
+      .then((registered) => {
+        if (registered && mountedRef.current) setBackgroundActive(true);
+      })
+      .catch(() => {});
+
+    const appStateSub = AppState.addEventListener(
+      'change',
+      (nextState: AppStateStatus) => {
+        if (nextState === 'active') {
+          // Re-attach foreground watcher when returning to the app. The
+          // background task keeps running independently.
+          startForegroundWatcher().catch(() => {});
+          // Rehydrate the zustand store so any trips persisted by the
+          // background task show up immediately.
+          const persist = (useAppStore as unknown as {
+            persist?: { rehydrate?: () => Promise<void> };
+          }).persist;
+          persist?.rehydrate?.().catch(() => {});
+        } else if (nextState === 'background' || nextState === 'inactive') {
+          // Release the foreground watcher — the background task continues.
+          stopForegroundWatcher();
         }
       }
     );
 
-    watchRef.current = subscription;
-  }, [getLocation, requestPermissions, reverseGeocode]);
-
-  const stopMonitoring = useCallback(() => {
-    watchRef.current?.remove();
-    watchRef.current = null;
+    return () => {
+      mountedRef.current = false;
+      appStateSub.remove();
+      stopForegroundWatcher();
+      // Intentionally do NOT stop the background task on unmount — it must
+      // keep running when the app is backgrounded or closed.
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  useEffect(() => {
-    startMonitoring();
-    return () => stopMonitoring();
-  }, [startMonitoring, stopMonitoring]);
 
   return {
     activeTrip,
     isTracking: activeTrip.isTracking,
+    permissions,
+    backgroundActive,
     startMonitoring,
     stopMonitoring,
+    requestPermissions,
   };
 }

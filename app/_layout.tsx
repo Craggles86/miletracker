@@ -8,6 +8,13 @@ import { ThemeProvider, DarkTheme } from '@react-navigation/native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Colors } from '@/constants/Colors';
 import { DisclaimerGate } from '@/components/disclaimer-gate';
+// Side-effect import: defines the background location task before the OS
+// delivers any deferred task events (required when the app is relaunched
+// by the OS for a background location update).
+import '@/utils/background-location-task';
+import { configureNotifications } from '@/utils/notifications-config';
+
+configureNotifications();
 
 SplashScreen.preventAutoHideAsync();
 

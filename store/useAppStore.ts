@@ -198,6 +198,9 @@ export const useAppStore = create<AppStore>()(
         settings: state.settings,
         favourites: state.favourites,
         odometerRecords: state.odometerRecords,
+        // Persist the active trip so tracking survives the app being killed
+        // and relaunched by the OS to deliver a background location update.
+        activeTrip: state.activeTrip,
       }),
     }
   )
