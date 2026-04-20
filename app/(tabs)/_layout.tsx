@@ -3,13 +3,9 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { Colors } from '@/constants/Colors';
 import { Fonts } from '@/constants/Typography';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useMockTrips } from '@/hooks/use-mock-trips';
 
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
-
-  // Seed demo data on first load
-  useMockTrips();
 
   return (
     <Tabs

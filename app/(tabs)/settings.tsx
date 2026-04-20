@@ -69,15 +69,16 @@ export default function SettingsScreen() {
             style={inputStyle}
           />
           <TextInput
-            value={settings.vehicleMake ? `${settings.vehicleMake}${settings.vehicleModel ? ' ' + settings.vehicleModel : ''}` : ''}
-            onChangeText={(t) => {
-              const parts = t.split(' ');
-              updateSettings({
-                vehicleMake: parts[0] || '',
-                vehicleModel: parts.slice(1).join(' '),
-              });
-            }}
-            placeholder="Vehicle Make/Model"
+            value={settings.vehicleMake}
+            onChangeText={(t) => updateSettings({ vehicleMake: t })}
+            placeholder="Vehicle Make (e.g. Toyota)"
+            placeholderTextColor={Colors.textSecondary}
+            style={inputStyle}
+          />
+          <TextInput
+            value={settings.vehicleModel}
+            onChangeText={(t) => updateSettings({ vehicleModel: t })}
+            placeholder="Vehicle Model (e.g. Corolla)"
             placeholderTextColor={Colors.textSecondary}
             style={inputStyle}
           />
