@@ -100,7 +100,7 @@ function WheelColumn({ data, selectedValue, onValueChange, formatLabel }: WheelC
           left: 4,
           right: 4,
           height: ITEM_HEIGHT,
-          backgroundColor: Colors.primary,
+          backgroundColor: 'rgba(59, 130, 246, 0.15)',
           borderRadius: 10,
           borderCurve: 'continuous',
           zIndex: 1,
@@ -133,7 +133,7 @@ function WheelColumn({ data, selectedValue, onValueChange, formatLabel }: WheelC
                 style={{
                   fontFamily: isSelected ? Fonts.semiBold : Fonts.regular,
                   fontSize: 16,
-                  color: isSelected ? '#fff' : Colors.textSecondary,
+                  color: isSelected ? Colors.primary : Colors.textSecondary,
                   fontVariant: ['tabular-nums'],
                   zIndex: 2,
                 }}
