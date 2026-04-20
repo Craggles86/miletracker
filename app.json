@@ -9,7 +9,10 @@
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": false
+      "supportsTablet": false,
+      "config": {
+        "googleMapsApiKey": "AIzaSyAHOxVHet_aTtkvyTS1V-QXFfkNNP0FiPs"
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -17,7 +20,12 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.craggles.miletracker"
+      "package": "com.craggles.miletracker",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyBNaUHLFvZTgSS7f8l2_C8QbxMxYRubYYA"
+        }
+      }
     },
     "web": {
       "bundler": "metro",
@@ -41,6 +49,7 @@
     },
     "owner": "craggles_86",
     "extra": {
+      "googleMapsApiKey": "AIzaSyBNaUHLFvZTgSS7f8l2_C8QbxMxYRubYYA",
       "router": {},
       "eas": {
         "projectId": "8c311382-907c-4530-9fb3-84a3f0d8c38c"

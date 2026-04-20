@@ -1,6 +1,6 @@
-import { useRef, useCallback, useState, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { View, Text, ActivityIndicator } from 'react-native';
-import MapView, { Polyline, Marker, PROVIDER_GOOGLE } from 'react-native-maps';
+import Constants from 'expo-constants';
 import { Colors } from '@/constants/Colors';
 import { Fonts } from '@/constants/Typography';
 import type { LatLng } from '@/store/types';
@@ -12,7 +12,8 @@ interface RouteMapPreviewProps {
   endSuburb?: string;
 }
 
-// Dark map style to match the app's dark theme
+const API_KEY = Constants.expoConfig?.extra?.googleMapsApiKey ?? '';
+
 const DARK_MAP_STYLE = [
   { elementType: 'geometry', stylers: [{ color: '#1a2744' }] },
   { elementType: 'labels.text.fill', stylers: [{ color: '#8a9ab5' }] },
@@ -33,7 +34,30 @@ const DARK_MAP_STYLE = [
   { featureType: 'water', elementType: 'labels.text.stroke', stylers: [{ color: '#0e1626' }] },
 ];
 
-const MAP_LOAD_TIMEOUT_MS = 15000;
+// Singleton: load the Google Maps JS API script once
+let scriptLoadPromise: Promise<void> | null = null;
+
+function loadGoogleMapsScript(): Promise<void> {
+  if (typeof window !== 'undefined' && (window as any).google?.maps) {
+    return Promise.resolve();
+  }
+  if (scriptLoadPromise) return scriptLoadPromise;
+
+  scriptLoadPromise = new Promise<void>((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${API_KEY}`;
+    script.async = true;
+    script.defer = true;
+    script.onload = () => resolve();
+    script.onerror = () => {
+      scriptLoadPromise = null;
+      reject(new Error('Failed to load Google Maps'));
+    };
+    document.head.appendChild(script);
+  });
+
+  return scriptLoadPromise;
+}
 
 export function RouteMapPreview({
   routePoints,
@@ -41,33 +65,111 @@ export function RouteMapPreview({
   startSuburb,
   endSuburb,
 }: RouteMapPreviewProps) {
-  const mapRef = useRef<MapView>(null);
-  const [mapReady, setMapReady] = useState(false);
-  const [mapTimedOut, setMapTimedOut] = useState(false);
+  const containerRef = useRef<View>(null);
+  const mapDivRef = useRef<HTMLDivElement | null>(null);
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
 
-  // Timeout fallback if map never fires onMapReady
+  // Load the Maps API
   useEffect(() => {
-    if (mapReady || routePoints.length < 2) return;
-    const timer = setTimeout(() => {
-      if (!mapReady) setMapTimedOut(true);
-    }, MAP_LOAD_TIMEOUT_MS);
-    return () => clearTimeout(timer);
-  }, [mapReady, routePoints.length]);
+    if (routePoints.length < 2) return;
+    let cancelled = false;
 
-  const handleMapReady = useCallback(() => {
-    setMapReady(true);
-    setMapTimedOut(false);
-    if (routePoints.length >= 2 && mapRef.current) {
-      const coords = routePoints.map((p) => ({
-        latitude: p.lat,
-        longitude: p.lng,
-      }));
-      mapRef.current.fitToCoordinates(coords, {
-        edgePadding: { top: 40, right: 40, bottom: 50, left: 40 },
-        animated: false,
+    loadGoogleMapsScript()
+      .then(() => {
+        if (!cancelled) setStatus('ready');
+      })
+      .catch(() => {
+        if (!cancelled) setStatus('error');
       });
-    }
-  }, [routePoints]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [routePoints.length]);
+
+  // Initialize the map once the API is ready
+  useEffect(() => {
+    if (status !== 'ready' || routePoints.length < 2) return;
+
+    // In react-native-web, a View ref resolves to the underlying DOM element
+    const container = containerRef.current as unknown as HTMLElement;
+    if (!container) return;
+
+    // Create a dedicated div for Google Maps so React doesn't interfere
+    const mapDiv = document.createElement('div');
+    mapDiv.style.cssText = 'width:100%;height:100%;position:absolute;top:0;left:0;z-index:0;';
+    container.appendChild(mapDiv);
+    mapDivRef.current = mapDiv;
+
+    const g = (window as any).google;
+    const coords = routePoints.map((p) => new g.maps.LatLng(p.lat, p.lng));
+
+    const map = new g.maps.Map(mapDiv, {
+      disableDefaultUI: true,
+      gestureHandling: 'none',
+      keyboardShortcuts: false,
+      styles: DARK_MAP_STYLE,
+      backgroundColor: '#1a2744',
+    });
+
+    // Fit to route bounds with padding
+    const bounds = new g.maps.LatLngBounds();
+    coords.forEach((c: any) => bounds.extend(c));
+    map.fitBounds(bounds, { top: 40, right: 40, bottom: 50, left: 40 });
+
+    // Glow polyline (wider, semi-transparent)
+    new g.maps.Polyline({
+      path: coords,
+      strokeColor: Colors.primary,
+      strokeOpacity: 0.25,
+      strokeWeight: 8,
+      map,
+    });
+
+    // Main polyline
+    new g.maps.Polyline({
+      path: coords,
+      strokeColor: Colors.primary,
+      strokeOpacity: 1,
+      strokeWeight: 4,
+      map,
+    });
+
+    // Start marker
+    new g.maps.Marker({
+      position: coords[0],
+      map,
+      icon: {
+        path: g.maps.SymbolPath.CIRCLE,
+        scale: 7,
+        fillColor: Colors.accent,
+        fillOpacity: 1,
+        strokeWeight: 2.5,
+        strokeColor: '#ffffff',
+      },
+    });
+
+    // End marker
+    new g.maps.Marker({
+      position: coords[coords.length - 1],
+      map,
+      icon: {
+        path: g.maps.SymbolPath.CIRCLE,
+        scale: 7,
+        fillColor: Colors.danger,
+        fillOpacity: 1,
+        strokeWeight: 2.5,
+        strokeColor: '#ffffff',
+      },
+    });
+
+    return () => {
+      if (mapDivRef.current && container.contains(mapDivRef.current)) {
+        container.removeChild(mapDivRef.current);
+      }
+      mapDivRef.current = null;
+    };
+  }, [status, routePoints]);
 
   if (routePoints.length < 2) {
     return (
@@ -96,30 +198,9 @@ export function RouteMapPreview({
     );
   }
 
-  const coordinates = routePoints.map((p) => ({
-    latitude: p.lat,
-    longitude: p.lng,
-  }));
-
-  const startCoord = coordinates[0];
-  const endCoord = coordinates[coordinates.length - 1];
-
-  // Compute initial region from route bounds
-  const lats = routePoints.map((p) => p.lat);
-  const lngs = routePoints.map((p) => p.lng);
-  const minLat = Math.min(...lats);
-  const maxLat = Math.max(...lats);
-  const minLng = Math.min(...lngs);
-  const maxLng = Math.max(...lngs);
-  const initialRegion = {
-    latitude: (minLat + maxLat) / 2,
-    longitude: (minLng + maxLng) / 2,
-    latitudeDelta: (maxLat - minLat) * 1.4 || 0.01,
-    longitudeDelta: (maxLng - minLng) * 1.4 || 0.01,
-  };
-
   return (
     <View
+      ref={containerRef}
       style={{
         height,
         backgroundColor: Colors.card,
@@ -130,118 +211,8 @@ export function RouteMapPreview({
         borderColor: Colors.border,
       }}
     >
-      {!mapTimedOut ? (
-        <MapView
-          ref={mapRef}
-          provider={PROVIDER_GOOGLE}
-          style={{ flex: 1 }}
-          initialRegion={initialRegion}
-          customMapStyle={DARK_MAP_STYLE}
-          onMapReady={handleMapReady}
-          scrollEnabled={false}
-          zoomEnabled={false}
-          rotateEnabled={false}
-          pitchEnabled={false}
-          toolbarEnabled={false}
-          showsUserLocation={false}
-          showsMyLocationButton={false}
-          showsCompass={false}
-          showsScale={false}
-          showsTraffic={false}
-          showsBuildings={false}
-          showsIndoors={false}
-          showsPointsOfInterest={false}
-          loadingEnabled
-          loadingIndicatorColor={Colors.primary}
-          loadingBackgroundColor={Colors.card}
-        >
-          {/* Glow polyline (wider, semi-transparent) */}
-          <Polyline
-            coordinates={coordinates}
-            strokeColor={`${Colors.primary}40`}
-            strokeWidth={8}
-          />
-
-          {/* Main route polyline */}
-          <Polyline
-            coordinates={coordinates}
-            strokeColor={Colors.primary}
-            strokeWidth={4}
-          />
-
-          {/* Start marker */}
-          <Marker coordinate={startCoord} anchor={{ x: 0.5, y: 0.5 }}>
-            <View
-              style={{
-                width: 20,
-                height: 20,
-                borderRadius: 10,
-                backgroundColor: `${Colors.accent}40`,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <View
-                style={{
-                  width: 12,
-                  height: 12,
-                  borderRadius: 6,
-                  backgroundColor: Colors.accent,
-                  borderWidth: 2,
-                  borderColor: '#ffffff',
-                }}
-              />
-            </View>
-          </Marker>
-
-          {/* End marker */}
-          <Marker coordinate={endCoord} anchor={{ x: 0.5, y: 0.5 }}>
-            <View
-              style={{
-                width: 20,
-                height: 20,
-                borderRadius: 10,
-                backgroundColor: `${Colors.danger}40`,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <View
-                style={{
-                  width: 12,
-                  height: 12,
-                  borderRadius: 6,
-                  backgroundColor: Colors.danger,
-                  borderWidth: 2,
-                  borderColor: '#ffffff',
-                }}
-              />
-            </View>
-          </Marker>
-        </MapView>
-      ) : (
-        <View
-          style={{
-            flex: 1,
-            alignItems: 'center',
-            justifyContent: 'center',
-            backgroundColor: Colors.card,
-          }}
-        >
-          <Text
-            style={{
-              fontFamily: Fonts.medium,
-              fontSize: 14,
-              color: Colors.textSecondary,
-            }}
-          >
-            Map unavailable
-          </Text>
-        </View>
-      )}
-
-      {/* Loading overlay while map initializes */}
-      {!mapReady && !mapTimedOut && (
+      {/* Loading overlay */}
+      {status === 'loading' && (
         <View
           style={{
             position: 'absolute',
@@ -252,6 +223,7 @@ export function RouteMapPreview({
             alignItems: 'center',
             justifyContent: 'center',
             backgroundColor: Colors.card,
+            zIndex: 10,
           }}
         >
           <ActivityIndicator size="small" color={Colors.primary} />
@@ -268,7 +240,34 @@ export function RouteMapPreview({
         </View>
       )}
 
-      {/* Suburb labels overlay */}
+      {/* Error overlay */}
+      {status === 'error' && (
+        <View
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: Colors.card,
+            zIndex: 10,
+          }}
+        >
+          <Text
+            style={{
+              fontFamily: Fonts.medium,
+              fontSize: 14,
+              color: Colors.textSecondary,
+            }}
+          >
+            Map unavailable
+          </Text>
+        </View>
+      )}
+
+      {/* Suburb labels */}
       {(startSuburb || endSuburb) && (
         <View
           style={{
@@ -278,6 +277,7 @@ export function RouteMapPreview({
             right: 12,
             flexDirection: 'row',
             justifyContent: 'space-between',
+            zIndex: 5,
           }}
         >
           {startSuburb ? (
