@@ -14,7 +14,10 @@
         "googleMapsApiKey": "AIzaSyAHOxVHet_aTtkvyTS1V-QXFfkNNP0FiPs"
       },
       "infoPlist": {
-        "UIBackgroundModes": ["location", "fetch"],
+        "UIBackgroundModes": [
+          "location",
+          "fetch"
+        ],
         "NSLocationAlwaysAndWhenInUseUsageDescription": "MileageTrack uses your location to automatically detect and log trips in the background.",
         "NSLocationWhenInUseUsageDescription": "MileageTrack uses your location to automatically detect and log trips.",
         "NSLocationAlwaysUsageDescription": "MileageTrack uses your location to automatically detect and log trips in the background."
@@ -77,7 +80,8 @@
       ]
     ],
     "experiments": {
-      "typedRoutes": true
+      "typedRoutes": true,
+      "baseUrl": "/ecb0b3ff-c226-4b2e-96d9-32f69117089b/8b28eafbdb460434/"
     },
     "owner": "craggles_86",
     "extra": {
