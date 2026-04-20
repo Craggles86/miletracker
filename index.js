@@ -4,11 +4,14 @@
  * Responsibilities (run BEFORE the React tree mounts):
  *   1. Install a global error handler so unhandled JS exceptions during
  *      startup are logged instead of silently crashing the app.
- *   2. Hand off to the normal expo-router entry.
- *
- * Background location tracking has been removed temporarily to isolate
- * a native crash on Android. Trips are now tracked manually via the UI
- * using foreground-only GPS while the app is open.
+ *   2. Register the background location TaskManager task at the top level.
+ *      `TaskManager.defineTask` MUST be called synchronously at module-load
+ *      time so the task is registered before the OS can wake us with a
+ *      background location delivery. Calling it inside a component, hook, or
+ *      async effect leads to a native crash on Android when the app is woken
+ *      in the background with no registered handler. The require is wrapped
+ *      in try/catch so a missing/broken module can never block startup.
+ *   3. Hand off to the normal expo-router entry.
  */
 
 // ── 1. Global error handler ─────────────────────────────────────────────────
@@ -38,6 +41,16 @@ try {
   console.warn('[startup] failed to install global error handler', err);
 }
 
-// ── 2. Hand off to expo-router ──────────────────────────────────────────────
-// eslint-disable-next-line @typescript-eslint/no-require-imports, global-require
+// ── 2. Register background location task (synchronous, top-level) ───────────
+// The require itself runs defineTask — see ./tasks/locationTask.js. This must
+// happen *before* expo-router/entry so the task is known to the OS when the
+// React tree mounts.
+try {
+  require('./tasks/locationTask');
+} catch (err) {
+  // eslint-disable-next-line no-console
+  console.warn('[startup] failed to register background location task', err);
+}
+
+// ── 3. Hand off to expo-router ──────────────────────────────────────────────
 require('expo-router/entry');

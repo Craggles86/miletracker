@@ -1,5 +1,14 @@
-import { useMemo } from 'react';
-import { View, Text, ScrollView, Pressable, Alert, Platform } from 'react-native';
+import { useEffect, useMemo, useRef } from 'react';
+import {
+  AppState,
+  View,
+  Text,
+  ScrollView,
+  Pressable,
+  Alert,
+  Platform,
+  InteractionManager,
+} from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -48,6 +57,43 @@ export default function HomeScreen() {
   }, [trips]);
 
   const unit = settings.distanceUnit;
+
+  // Import any background-detected trips into the store once the app has
+  // fully rendered. We defer with InteractionManager so nothing touches the
+  // native bridge during the first frame. This also runs whenever the app
+  // returns to the foreground.
+  const syncingRef = useRef(false);
+  useEffect(() => {
+    const runSync = () => {
+      if (syncingRef.current) return;
+      syncingRef.current = true;
+      InteractionManager.runAfterInteractions(() => {
+        (async () => {
+          try {
+            const mod = await import('@/utils/background-tracking');
+            await mod.syncPendingBackgroundTrips();
+          } catch (err) {
+            console.warn('[HomeScreen] background sync failed', err);
+          } finally {
+            syncingRef.current = false;
+          }
+        })();
+      });
+    };
+
+    runSync();
+
+    const sub = AppState.addEventListener('change', (next) => {
+      if (next === 'active') runSync();
+    });
+    return () => {
+      try {
+        sub.remove();
+      } catch {
+        // ignore
+      }
+    };
+  }, []);
 
   const handleStart = async () => {
     const ok = await startTrip();

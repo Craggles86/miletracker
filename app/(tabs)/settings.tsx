@@ -10,6 +10,7 @@ import { SettingsSection } from '@/components/settings-section';
 import { UnitToggle } from '@/components/unit-toggle';
 import { BusinessDayRow } from '@/components/business-day-row';
 import { LegalDisclaimerModal } from '@/components/legal-disclaimer-modal';
+import { BackgroundTrackingToggle } from '@/components/background-tracking-toggle';
 import { generateCSV, exportCSV } from '@/utils/csv-export';
 import type { DaySchedule } from '@/store/types';
 
@@ -322,8 +323,13 @@ export default function SettingsScreen() {
         </View>
       </Animated.View>
 
-      {/* GPS Tracking info */}
+      {/* Background GPS Tracking */}
       <Animated.View entering={FadeInDown.delay(700).duration(400)}>
+        <BackgroundTrackingToggle />
+      </Animated.View>
+
+      {/* Manual Tracking info */}
+      <Animated.View entering={FadeInDown.delay(750).duration(400)}>
         <View
           style={{
             backgroundColor: Colors.card,

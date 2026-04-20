@@ -14,7 +14,13 @@
         "googleMapsApiKey": "AIzaSyAHOxVHet_aTtkvyTS1V-QXFfkNNP0FiPs"
       },
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "MileageTrack uses your location to log your trips while the app is open."
+        "NSLocationWhenInUseUsageDescription": "MileageTrack uses your location to log your trips while the app is open.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "MileageTrack uses your location in the background to automatically detect and log your trips.",
+        "NSLocationAlwaysUsageDescription": "MileageTrack uses your location in the background to automatically detect and log your trips.",
+        "UIBackgroundModes": [
+          "location",
+          "fetch"
+        ]
       }
     },
     "android": {
@@ -29,9 +35,17 @@
           "apiKey": "AIzaSyBNaUHLFvZTgSS7f8l2_C8QbxMxYRubYYA"
         }
       },
+      "foregroundService": {
+        "notificationTitle": "MileageTrack is tracking your trips",
+        "notificationBody": "Automatic trip detection is running. Tap to open the app.",
+        "notificationColor": "#4F46E5"
+      },
       "permissions": [
         "ACCESS_COARSE_LOCATION",
         "ACCESS_FINE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION",
+        "FOREGROUND_SERVICE",
+        "FOREGROUND_SERVICE_LOCATION",
         "POST_NOTIFICATIONS"
       ]
     },
@@ -54,7 +68,11 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "MileageTrack uses your location to log your trips while the app is open."
+          "locationWhenInUsePermission": "MileageTrack uses your location to log your trips while the app is open.",
+          "locationAlwaysAndWhenInUsePermission": "MileageTrack uses your location in the background to automatically detect and log your trips.",
+          "locationAlwaysPermission": "MileageTrack uses your location in the background to automatically detect and log your trips.",
+          "isAndroidBackgroundLocationEnabled": true,
+          "isAndroidForegroundServiceEnabled": true
         }
       ],
       [
