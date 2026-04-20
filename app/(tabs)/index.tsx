@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { View, Text, ScrollView, Switch, Pressable } from 'react-native';
+import { View, Text, ScrollView } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -22,7 +22,6 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const trips = useAppStore((s) => s.trips);
   const settings = useAppStore((s) => s.settings);
-  const updateSettings = useAppStore((s) => s.updateSettings);
   const { isTracking } = useLocationTracking();
 
   const { weekTotal, monthTotal, lastTrip } = useMemo(() => {
@@ -256,52 +255,6 @@ export default function HomeScreen() {
         />
       </View>
 
-      {/* Log all as Business toggle */}
-      <Animated.View entering={FadeInUp.delay(400).duration(400)}>
-        <Pressable
-          onPress={() =>
-            updateSettings({ logAllAsBusiness: !settings.logAllAsBusiness })
-          }
-          style={{
-            backgroundColor: Colors.card,
-            borderRadius: 14,
-            borderCurve: 'continuous',
-            padding: 16,
-            borderWidth: 1,
-            borderColor: settings.logAllAsBusiness
-              ? `${Colors.primary}60`
-              : Colors.border,
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}
-        >
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-            <Ionicons
-              name="briefcase"
-              size={18}
-              color={
-                settings.logAllAsBusiness ? Colors.primary : Colors.textSecondary
-              }
-            />
-            <Text
-              style={{
-                fontFamily: Fonts.medium,
-                fontSize: 15,
-                color: Colors.textPrimary,
-              }}
-            >
-              Log all trips as Business
-            </Text>
-          </View>
-          <Switch
-            value={settings.logAllAsBusiness}
-            onValueChange={(val) => updateSettings({ logAllAsBusiness: val })}
-            trackColor={{ false: Colors.surface, true: Colors.primary }}
-            thumbColor="#fff"
-          />
-        </Pressable>
-      </Animated.View>
     </ScrollView>
   );
 }

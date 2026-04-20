@@ -120,8 +120,63 @@ export default function SettingsScreen() {
         </SettingsSection>
       </Animated.View>
 
-      {/* Smart Business Classification */}
+      {/* Log all as Business toggle */}
       <Animated.View entering={FadeInDown.delay(200).duration(400)}>
+        <View
+          style={{
+            backgroundColor: Colors.card,
+            borderRadius: 14,
+            borderCurve: 'continuous',
+            padding: 16,
+            borderWidth: 1,
+            borderColor: settings.logAllAsBusiness
+              ? `${Colors.primary}60`
+              : Colors.border,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
+        >
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}>
+            <Ionicons
+              name="briefcase"
+              size={18}
+              color={
+                settings.logAllAsBusiness ? Colors.primary : Colors.textSecondary
+              }
+            />
+            <View style={{ flex: 1, gap: 2 }}>
+              <Text
+                style={{
+                  fontFamily: Fonts.medium,
+                  fontSize: 15,
+                  color: Colors.textPrimary,
+                }}
+              >
+                Log All Trips as Business
+              </Text>
+              <Text
+                style={{
+                  fontFamily: Fonts.regular,
+                  fontSize: 12,
+                  color: Colors.textSecondary,
+                }}
+              >
+                Overrides business hours schedule below
+              </Text>
+            </View>
+          </View>
+          <Switch
+            value={settings.logAllAsBusiness}
+            onValueChange={(val) => updateSettings({ logAllAsBusiness: val })}
+            trackColor={{ false: Colors.surface, true: Colors.primary }}
+            thumbColor="#fff"
+          />
+        </View>
+      </Animated.View>
+
+      {/* Smart Business Classification */}
+      <Animated.View entering={FadeInDown.delay(300).duration(400)}>
         <SettingsSection title="Smart Business Classification">
           <Text
             style={{
@@ -151,7 +206,7 @@ export default function SettingsScreen() {
       </Animated.View>
 
       {/* Distance Unit */}
-      <Animated.View entering={FadeInDown.delay(300).duration(400)}>
+      <Animated.View entering={FadeInDown.delay(400).duration(400)}>
         <SettingsSection title="Distance Unit">
           <UnitToggle
             value={settings.distanceUnit}
@@ -161,7 +216,7 @@ export default function SettingsScreen() {
       </Animated.View>
 
       {/* Auto Export */}
-      <Animated.View entering={FadeInDown.delay(400).duration(400)}>
+      <Animated.View entering={FadeInDown.delay(500).duration(400)}>
         <SettingsSection title="Auto Export (End of Financial Year)">
           <TextInput
             value={settings.exportEmail}
@@ -222,7 +277,7 @@ export default function SettingsScreen() {
       </Animated.View>
 
       {/* Weekly Odometer Prompt */}
-      <Animated.View entering={FadeInDown.delay(500).duration(400)}>
+      <Animated.View entering={FadeInDown.delay(600).duration(400)}>
         <View
           style={{
             backgroundColor: Colors.card,
@@ -268,7 +323,7 @@ export default function SettingsScreen() {
       </Animated.View>
 
       {/* GPS Info */}
-      <Animated.View entering={FadeInDown.delay(600).duration(400)}>
+      <Animated.View entering={FadeInDown.delay(700).duration(400)}>
         <View
           style={{
             backgroundColor: Colors.card,
@@ -321,7 +376,7 @@ export default function SettingsScreen() {
       </Animated.View>
 
       {/* Legal Disclaimer */}
-      <Animated.View entering={FadeInDown.delay(700).duration(400)}>
+      <Animated.View entering={FadeInDown.delay(800).duration(400)}>
         <Pressable
           onPress={() => setDisclaimerVisible(true)}
           style={({ pressed }) => ({
