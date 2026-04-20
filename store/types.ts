@@ -79,8 +79,4 @@ export interface Settings {
   exportEmail: string;
   autoExportEnabled: boolean;
   financialYearType: 'AU' | 'calendar';
-  // GPS tracking is opt-in. Auto-tracking (foreground + background) is only
-  // started after the user explicitly enables it in Settings. This prevents
-  // a crash on first launch caused by permission / native-module failures.
-  trackingEnabled: boolean;
 }

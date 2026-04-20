@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { View, Text, ScrollView } from 'react-native';
+import { View, Text, ScrollView, Pressable, Alert, Platform } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -22,7 +22,8 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const trips = useAppStore((s) => s.trips);
   const settings = useAppStore((s) => s.settings);
-  const { isTracking } = useLocationTracking();
+  const { isTracking, startTrip, stopTrip, starting, stopping } =
+    useLocationTracking();
 
   const { weekTotal, monthTotal, lastTrip } = useMemo(() => {
     const now = new Date();
@@ -48,6 +49,23 @@ export default function HomeScreen() {
 
   const unit = settings.distanceUnit;
 
+  const handleStart = async () => {
+    const ok = await startTrip();
+    if (!ok) {
+      const msg =
+        'Location permission is required to track your trip. Please enable it in your device settings.';
+      if (Platform.OS === 'web') {
+        if (typeof window !== 'undefined') window.alert(msg);
+      } else {
+        Alert.alert('Unable to start trip', msg);
+      }
+    }
+  };
+
+  const handleStop = async () => {
+    await stopTrip();
+  };
+
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: Colors.background }}
@@ -61,8 +79,8 @@ export default function HomeScreen() {
       {/* Notification banner when tracking */}
       <NotificationBanner
         visible={isTracking}
-        title="Trip started"
-        message="MileageTrack is logging your journey"
+        title="Trip in progress"
+        message="MileageTrack is logging your journey while the app is open"
       />
 
       {/* Header */}
@@ -144,6 +162,83 @@ export default function HomeScreen() {
       >
         <TripStatusRing />
       </View>
+
+      {/* Start / Stop Trip button */}
+      <Animated.View
+        entering={FadeInUp.delay(150).duration(400)}
+        style={{ marginBottom: 16 }}
+      >
+        {!isTracking ? (
+          <Pressable
+            onPress={handleStart}
+            disabled={starting}
+            style={({ pressed }) => ({
+              backgroundColor: Colors.accent,
+              borderRadius: 16,
+              borderCurve: 'continuous',
+              paddingVertical: 16,
+              paddingHorizontal: 20,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 10,
+              opacity: pressed || starting ? 0.7 : 1,
+              minHeight: 56,
+            })}
+          >
+            <Ionicons name="play" size={20} color="#fff" />
+            <Text
+              style={{
+                fontFamily: Fonts.semiBold,
+                fontSize: 16,
+                color: '#fff',
+              }}
+            >
+              {starting ? 'Starting…' : 'Start Trip'}
+            </Text>
+          </Pressable>
+        ) : (
+          <Pressable
+            onPress={handleStop}
+            disabled={stopping}
+            style={({ pressed }) => ({
+              backgroundColor: Colors.danger,
+              borderRadius: 16,
+              borderCurve: 'continuous',
+              paddingVertical: 16,
+              paddingHorizontal: 20,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 10,
+              opacity: pressed || stopping ? 0.7 : 1,
+              minHeight: 56,
+            })}
+          >
+            <Ionicons name="stop" size={20} color="#fff" />
+            <Text
+              style={{
+                fontFamily: Fonts.semiBold,
+                fontSize: 16,
+                color: '#fff',
+              }}
+            >
+              {stopping ? 'Stopping…' : 'Stop Trip'}
+            </Text>
+          </Pressable>
+        )}
+        <Text
+          style={{
+            fontFamily: Fonts.regular,
+            fontSize: 12,
+            color: Colors.textSecondary,
+            textAlign: 'center',
+            marginTop: 8,
+          }}
+        >
+          Keep the app open while driving to record your trip.
+        </Text>
+      </Animated.View>
 
       {/* Week stat (single compact line) */}
       <Animated.View

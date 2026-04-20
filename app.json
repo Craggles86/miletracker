@@ -14,13 +14,7 @@
         "googleMapsApiKey": "AIzaSyAHOxVHet_aTtkvyTS1V-QXFfkNNP0FiPs"
       },
       "infoPlist": {
-        "UIBackgroundModes": [
-          "location",
-          "fetch"
-        ],
-        "NSLocationAlwaysAndWhenInUseUsageDescription": "MileageTrack uses your location to automatically detect and log trips in the background.",
-        "NSLocationWhenInUseUsageDescription": "MileageTrack uses your location to automatically detect and log trips.",
-        "NSLocationAlwaysUsageDescription": "MileageTrack uses your location to automatically detect and log trips in the background."
+        "NSLocationWhenInUseUsageDescription": "MileageTrack uses your location to log your trips while the app is open."
       }
     },
     "android": {
@@ -38,11 +32,7 @@
       "permissions": [
         "ACCESS_COARSE_LOCATION",
         "ACCESS_FINE_LOCATION",
-        "ACCESS_BACKGROUND_LOCATION",
-        "FOREGROUND_SERVICE",
-        "FOREGROUND_SERVICE_LOCATION",
-        "POST_NOTIFICATIONS",
-        "WAKE_LOCK"
+        "POST_NOTIFICATIONS"
       ]
     },
     "web": {
@@ -64,12 +54,7 @@
       [
         "expo-location",
         {
-          "locationAlwaysAndWhenInUsePermission": "MileageTrack needs background location access to automatically detect and log your trips while the app is closed.",
-          "locationAlwaysPermission": "MileageTrack needs background location access to automatically detect and log your trips while the app is closed.",
-          "locationWhenInUsePermission": "MileageTrack uses your location to automatically detect and log your trips.",
-          "isIosBackgroundLocationEnabled": true,
-          "isAndroidBackgroundLocationEnabled": true,
-          "isAndroidForegroundServiceEnabled": true
+          "locationWhenInUsePermission": "MileageTrack uses your location to log your trips while the app is open."
         }
       ],
       [
@@ -80,8 +65,7 @@
       ]
     ],
     "experiments": {
-      "typedRoutes": true,
-      "baseUrl": "/ecb0b3ff-c226-4b2e-96d9-32f69117089b/dev-preview/"
+      "typedRoutes": true
     },
     "owner": "craggles_86",
     "extra": {

@@ -172,7 +172,6 @@ export function getDefaultSettings(): Settings {
     exportEmail: '',
     autoExportEnabled: false,
     financialYearType: 'AU',
-    trackingEnabled: false,
   };
 }
 

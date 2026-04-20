@@ -6,7 +6,6 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { Colors } from '@/constants/Colors';
 import { Fonts } from '@/constants/Typography';
 import { useAppStore } from '@/store/useAppStore';
-import { useLocationTracking } from '@/hooks/use-location-tracking';
 import { SettingsSection } from '@/components/settings-section';
 import { UnitToggle } from '@/components/unit-toggle';
 import { BusinessDayRow } from '@/components/business-day-row';
@@ -21,19 +20,7 @@ export default function SettingsScreen() {
   const settings = useAppStore((s) => s.settings);
   const updateSettings = useAppStore((s) => s.updateSettings);
   const trips = useAppStore((s) => s.trips);
-  const { trackingEnabled, setTrackingEnabled } = useLocationTracking();
   const [disclaimerVisible, setDisclaimerVisible] = useState(false);
-  const [togglingTracking, setTogglingTracking] = useState(false);
-
-  const handleToggleTracking = async (val: boolean) => {
-    if (togglingTracking) return;
-    setTogglingTracking(true);
-    try {
-      await setTrackingEnabled(val);
-    } finally {
-      setTogglingTracking(false);
-    }
-  };
 
   const handleDayChange = (day: string, schedule: DaySchedule) => {
     updateSettings({
@@ -335,7 +322,7 @@ export default function SettingsScreen() {
         </View>
       </Animated.View>
 
-      {/* GPS Tracking toggle */}
+      {/* GPS Tracking info */}
       <Animated.View entering={FadeInDown.delay(700).duration(400)}>
         <View
           style={{
@@ -344,9 +331,7 @@ export default function SettingsScreen() {
             borderCurve: 'continuous',
             padding: 16,
             borderWidth: 1,
-            borderColor: trackingEnabled
-              ? `${Colors.primary}60`
-              : Colors.border,
+            borderColor: Colors.border,
             gap: 12,
           }}
         >
@@ -377,7 +362,7 @@ export default function SettingsScreen() {
                   color: Colors.textPrimary,
                 }}
               >
-                GPS Tracking
+                Manual Trip Tracking
               </Text>
               <Text
                 style={{
@@ -386,16 +371,9 @@ export default function SettingsScreen() {
                   color: Colors.textSecondary,
                 }}
               >
-                {trackingEnabled ? 'Enabled' : 'Disabled'}
+                Start & stop trips from the home screen
               </Text>
             </View>
-            <Switch
-              value={trackingEnabled}
-              onValueChange={handleToggleTracking}
-              disabled={togglingTracking}
-              trackColor={{ false: Colors.surface, true: Colors.primary }}
-              thumbColor="#fff"
-            />
           </View>
           <Text
             style={{
@@ -405,9 +383,9 @@ export default function SettingsScreen() {
               lineHeight: 18,
             }}
           >
-            Trips start automatically when speed exceeds 10 km/h and end after
-            5 minutes of inactivity within a 20 m radius. On Android, choose
-            &quot;Allow all the time&quot; to keep tracking in the background.
+            Tap &quot;Start Trip&quot; on the home screen before driving, then
+            &quot;Stop Trip&quot; when you arrive. Keep the app open while
+            driving so GPS distance can be recorded.
           </Text>
         </View>
       </Animated.View>

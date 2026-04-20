@@ -2,19 +2,21 @@ import { useEffect, useRef, useCallback, useState } from 'react';
 import { AppState, Platform } from 'react-native';
 import type { AppStateStatus } from 'react-native';
 import { useAppStore } from '@/store/useAppStore';
+import { haversineDistance } from '@/utils/helpers';
+import type { LatLng } from '@/store/types';
 
 type LocationModule = typeof import('expo-location');
 type NotificationsModule = typeof import('expo-notifications');
 
+const ROUTE_POINT_MIN_DISTANCE_M = 15;
+
 export interface PermissionState {
   foreground: 'granted' | 'denied' | 'undetermined';
-  background: 'granted' | 'denied' | 'undetermined';
   notifications: 'granted' | 'denied' | 'undetermined';
 }
 
 const initialPermissions: PermissionState = {
   foreground: 'undetermined',
-  background: 'undetermined',
   notifications: 'undetermined',
 };
 
@@ -39,71 +41,61 @@ async function loadNotifications(): Promise<NotificationsModule | null> {
   }
 }
 
-async function safeProcessLocationUpdate(
-  args: {
-    latitude: number;
-    longitude: number;
-    speedKmh: number;
-    timestamp: number;
-  }
-): Promise<void> {
+async function reverseGeocodeSuburb(lat: number, lng: number): Promise<string> {
   try {
-    const mod = await import('@/utils/background-location-task');
-    await mod.processLocationUpdate(args);
-  } catch (err) {
-    console.warn('[LocationTracking] processLocationUpdate failed', err);
-  }
-}
-
-async function safeStartBackground(): Promise<boolean> {
-  try {
-    const mod = await import('@/utils/background-location-task');
-    return await mod.startBackgroundLocationUpdates();
-  } catch (err) {
-    console.warn('[LocationTracking] background start failed', err);
-    return false;
-  }
-}
-
-async function safeStopBackground(): Promise<void> {
-  try {
-    const mod = await import('@/utils/background-location-task');
-    await mod.stopBackgroundLocationUpdates();
-  } catch (err) {
-    console.warn('[LocationTracking] background stop failed', err);
-  }
-}
-
-async function safeIsBackgroundRegistered(): Promise<boolean> {
-  try {
-    const mod = await import('@/utils/background-location-task');
-    return await mod.isBackgroundTaskRegistered();
+    const Location = await loadLocation();
+    if (!Location) return 'Unknown';
+    const results = await Location.reverseGeocodeAsync({ latitude: lat, longitude: lng });
+    if (results.length > 0) {
+      return (
+        results[0].subregion ||
+        results[0].city ||
+        results[0].district ||
+        results[0].region ||
+        'Unknown'
+      );
+    }
   } catch {
-    return false;
+    // Geocoding can fail silently
+  }
+  return 'Unknown';
+}
+
+async function safeNotify(title: string, body: string): Promise<void> {
+  try {
+    const Notifications = await loadNotifications();
+    if (!Notifications) return;
+    await Notifications.scheduleNotificationAsync({
+      content: { title, body },
+      trigger: null,
+    });
+  } catch {
+    // Ignore — notifications may not be granted
   }
 }
 
 /**
- * Hook that drives MileageTrack's location tracking engine.
+ * Manual trip tracking hook.
  *
- * Tracking is **opt-in**: nothing happens unless `settings.trackingEnabled`
- * is true. This prevents permission requests from blocking first launch, and
- * makes crashes in location code impossible on a fresh install.
+ * The user explicitly starts and stops trips. While a trip is active and the
+ * app is in the foreground, we watch GPS position and accumulate distance.
  *
- * - Native: foreground watcher + background task (if permission granted).
- *   Background permission denial falls back to foreground-only.
- * - Web: foreground watcher only.
+ * Background location has been removed to isolate a native crash on Android.
  */
 export function useLocationTracking() {
   const activeTrip = useAppStore((s) => s.activeTrip);
-  const trackingEnabled = useAppStore((s) => s.settings.trackingEnabled);
-  const updateSettings = useAppStore((s) => s.updateSettings);
 
   const [permissions, setPermissions] = useState<PermissionState>(initialPermissions);
-  const [backgroundActive, setBackgroundActive] = useState(false);
+  const [starting, setStarting] = useState(false);
+  const [stopping, setStopping] = useState(false);
 
   const foregroundWatchRef = useRef<{ remove: () => void } | null>(null);
   const mountedRef = useRef(true);
+  const isTrackingRef = useRef(activeTrip.isTracking);
+
+  useEffect(() => {
+    isTrackingRef.current = activeTrip.isTracking;
+  }, [activeTrip.isTracking]);
 
   // ── Permission handling ────────────────────────────────────────────────
   const requestPermissions = useCallback(async (): Promise<PermissionState> => {
@@ -119,22 +111,6 @@ export function useLocationTracking() {
       } catch (err) {
         console.warn('[LocationTracking] foreground perm request failed', err);
         next.foreground = 'denied';
-      }
-
-      if (next.foreground === 'granted' && Platform.OS !== 'web') {
-        try {
-          const bg = await Location.requestBackgroundPermissionsAsync();
-          next.background = bg.status as PermissionState['background'];
-        } catch (err) {
-          // Background permission can throw on Android if the user hasn't
-          // granted "Allow all the time" — treat as denied and carry on with
-          // foreground-only tracking.
-          console.warn('[LocationTracking] background perm request failed', err);
-          next.background = 'denied';
-        }
-      } else {
-        next.background =
-          next.foreground === 'granted' ? 'undetermined' : 'denied';
       }
     }
 
@@ -157,7 +133,51 @@ export function useLocationTracking() {
     return next;
   }, []);
 
-  // ── Foreground watcher ─────────────────────────────────────────────────
+  // ── Location update processor ──────────────────────────────────────────
+  const processLocation = useCallback(
+    (latitude: number, longitude: number, speedKmh: number) => {
+      const store = useAppStore.getState();
+      const trip = store.activeTrip;
+      if (!trip.isTracking) return;
+
+      let addedDistance = 0;
+      if (trip.lastPosition) {
+        addedDistance =
+          haversineDistance(
+            trip.lastPosition.lat,
+            trip.lastPosition.lng,
+            latitude,
+            longitude
+          ) / 1000;
+      }
+
+      // Guard against GPS jitter — ignore absurd jumps
+      if (addedDistance > 2) addedDistance = 0;
+
+      const newDistance = trip.currentDistance + addedDistance;
+
+      const lastRoute =
+        trip.routePoints.length > 0
+          ? trip.routePoints[trip.routePoints.length - 1]
+          : null;
+      if (
+        !lastRoute ||
+        haversineDistance(lastRoute.lat, lastRoute.lng, latitude, longitude) >=
+          ROUTE_POINT_MIN_DISTANCE_M
+      ) {
+        store.addRoutePoint({ lat: latitude, lng: longitude });
+      }
+
+      store.updateActiveTrip({
+        currentSpeed: speedKmh,
+        currentDistance: newDistance,
+        lastPosition: { lat: latitude, lng: longitude },
+      });
+    },
+    []
+  );
+
+  // ── Foreground watcher lifecycle ───────────────────────────────────────
   const startForegroundWatcher = useCallback(async () => {
     if (foregroundWatchRef.current) return;
     const Location = await loadLocation();
@@ -173,12 +193,11 @@ export function useLocationTracking() {
         (location) => {
           try {
             const speedKmh = Math.max(0, (location.coords.speed ?? 0) * 3.6);
-            safeProcessLocationUpdate({
-              latitude: location.coords.latitude,
-              longitude: location.coords.longitude,
-              speedKmh,
-              timestamp: location.timestamp,
-            });
+            processLocation(
+              location.coords.latitude,
+              location.coords.longitude,
+              speedKmh
+            );
           } catch (err) {
             console.warn('[LocationTracking] watcher callback threw', err);
           }
@@ -188,7 +207,7 @@ export function useLocationTracking() {
     } catch (err) {
       console.warn('[LocationTracking] watchPositionAsync failed', err);
     }
-  }, []);
+  }, [processLocation]);
 
   const stopForegroundWatcher = useCallback(() => {
     try {
@@ -199,84 +218,100 @@ export function useLocationTracking() {
     foregroundWatchRef.current = null;
   }, []);
 
-  // ── Public start/stop (called by UI when user toggles tracking) ────────
-  const startMonitoring = useCallback(async () => {
+  // ── Manual start/stop ──────────────────────────────────────────────────
+  const startTrip = useCallback(async (): Promise<boolean> => {
+    if (starting || isTrackingRef.current) return false;
+    setStarting(true);
     try {
       const perms = await requestPermissions();
-      if (perms.foreground !== 'granted') return false;
-
-      if (Platform.OS === 'web') {
-        await startForegroundWatcher();
-        return true;
-      }
-
-      if (perms.background === 'granted') {
-        const ok = await safeStartBackground();
-        if (mountedRef.current) setBackgroundActive(ok);
-      }
-
-      await startForegroundWatcher();
-      return true;
-    } catch (err) {
-      console.warn('[LocationTracking] startMonitoring threw', err);
-      return false;
-    }
-  }, [requestPermissions, startForegroundWatcher]);
-
-  const stopMonitoring = useCallback(async () => {
-    stopForegroundWatcher();
-    try {
-      await safeStopBackground();
-    } catch {
-      // ignore
-    }
-    if (mountedRef.current) setBackgroundActive(false);
-  }, [stopForegroundWatcher]);
-
-  // Convenience toggle for UI
-  const setTrackingEnabled = useCallback(
-    async (enabled: boolean) => {
-      try {
-        if (enabled) {
-          const ok = await startMonitoring();
-          updateSettings({ trackingEnabled: ok });
-          return ok;
-        } else {
-          await stopMonitoring();
-          updateSettings({ trackingEnabled: false });
-          return true;
-        }
-      } catch (err) {
-        console.warn('[LocationTracking] setTrackingEnabled failed', err);
-        updateSettings({ trackingEnabled: false });
+      if (perms.foreground !== 'granted') {
         return false;
       }
-    },
-    [startMonitoring, stopMonitoring, updateSettings]
-  );
 
-  // ── Lifecycle: auto-start only if the user has previously opted in ─────
+      const Location = await loadLocation();
+      if (!Location) return false;
+
+      let lat = 0;
+      let lng = 0;
+      try {
+        const pos = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.High,
+        });
+        lat = pos.coords.latitude;
+        lng = pos.coords.longitude;
+      } catch (err) {
+        console.warn('[LocationTracking] getCurrentPosition failed', err);
+      }
+
+      useAppStore.getState().startTrip(lat, lng);
+      safeNotify('Trip started', 'MileageTrack is logging your journey').catch(() => {});
+
+      if (Platform.OS !== 'web' || typeof navigator !== 'undefined') {
+        await startForegroundWatcher();
+      }
+      return true;
+    } catch (err) {
+      console.warn('[LocationTracking] startTrip threw', err);
+      return false;
+    } finally {
+      if (mountedRef.current) setStarting(false);
+    }
+  }, [requestPermissions, startForegroundWatcher, starting]);
+
+  const stopTrip = useCallback(async (): Promise<boolean> => {
+    if (stopping || !isTrackingRef.current) return false;
+    setStopping(true);
+    try {
+      stopForegroundWatcher();
+
+      const state = useAppStore.getState();
+      const trip = state.activeTrip;
+      const routePts = trip.routePoints;
+
+      const startPt: LatLng | null =
+        routePts.length > 0 ? routePts[0] : trip.lastPosition;
+      const endPt: LatLng | null =
+        routePts.length > 0
+          ? routePts[routePts.length - 1]
+          : trip.lastPosition;
+
+      const [startSuburb, endSuburb] = await Promise.all([
+        startPt
+          ? reverseGeocodeSuburb(startPt.lat, startPt.lng)
+          : Promise.resolve('Unknown'),
+        endPt
+          ? reverseGeocodeSuburb(endPt.lat, endPt.lng)
+          : Promise.resolve('Unknown'),
+      ]);
+
+      const unit = state.settings.distanceUnit;
+      const distanceKm = trip.currentDistance;
+      state.endTrip(startSuburb, endSuburb);
+
+      const display =
+        unit === 'miles'
+          ? `${(distanceKm * 0.621371).toFixed(1)} mi`
+          : `${distanceKm.toFixed(1)} km`;
+      safeNotify('Trip ended', `${display} logged`).catch(() => {});
+      return true;
+    } catch (err) {
+      console.warn('[LocationTracking] stopTrip threw', err);
+      return false;
+    } finally {
+      if (mountedRef.current) setStopping(false);
+    }
+  }, [stopForegroundWatcher, stopping]);
+
+  // ── Lifecycle: pause watcher when app is backgrounded, resume on foreground ──
   useEffect(() => {
     mountedRef.current = true;
-
-    // Sync background indicator (if the OS relaunched us and the task is
-    // already registered).
-    safeIsBackgroundRegistered()
-      .then((registered) => {
-        if (registered && mountedRef.current) setBackgroundActive(true);
-      })
-      .catch(() => {});
 
     const appStateSub = AppState.addEventListener(
       'change',
       (nextState: AppStateStatus) => {
-        if (!trackingEnabled) return;
+        if (!isTrackingRef.current) return;
         if (nextState === 'active') {
           startForegroundWatcher().catch(() => {});
-          const persist = (useAppStore as unknown as {
-            persist?: { rehydrate?: () => Promise<void> };
-          }).persist;
-          persist?.rehydrate?.().catch(() => {});
         } else if (nextState === 'background' || nextState === 'inactive') {
           stopForegroundWatcher();
         }
@@ -285,46 +320,34 @@ export function useLocationTracking() {
 
     return () => {
       mountedRef.current = false;
-      try { appStateSub.remove(); } catch { /* ignore */ }
+      try {
+        appStateSub.remove();
+      } catch {
+        // ignore
+      }
       stopForegroundWatcher();
-      // Intentionally do NOT stop the background task on unmount.
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // React to the tracking toggle. Start/stop the foreground watcher on
-  // enable/disable — the background task is managed by the toggle function.
+  // Resume the watcher if we have an active trip but no subscription (e.g. app
+  // remount, fast refresh during dev).
   useEffect(() => {
-    if (!trackingEnabled) {
+    if (activeTrip.isTracking && !foregroundWatchRef.current) {
+      startForegroundWatcher().catch(() => {});
+    } else if (!activeTrip.isTracking && foregroundWatchRef.current) {
       stopForegroundWatcher();
-      return;
     }
-    // Fire-and-forget. If permissions aren't granted yet, the watcher simply
-    // won't start — the user will need to toggle via settings which drives
-    // the permission prompt.
-    (async () => {
-      try {
-        const Location = await loadLocation();
-        if (!Location) return;
-        const fg = await Location.getForegroundPermissionsAsync();
-        if (fg.status === 'granted') {
-          startForegroundWatcher().catch(() => {});
-        }
-      } catch (err) {
-        console.warn('[LocationTracking] reconcile failed', err);
-      }
-    })();
-  }, [trackingEnabled, startForegroundWatcher, stopForegroundWatcher]);
+  }, [activeTrip.isTracking, startForegroundWatcher, stopForegroundWatcher]);
 
   return {
     activeTrip,
     isTracking: activeTrip.isTracking,
-    trackingEnabled,
     permissions,
-    backgroundActive,
-    startMonitoring,
-    stopMonitoring,
-    setTrackingEnabled,
+    starting,
+    stopping,
+    startTrip,
+    stopTrip,
     requestPermissions,
   };
 }
