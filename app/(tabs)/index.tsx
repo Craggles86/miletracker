@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef } from 'react';
 import {
-  AppState,
   View,
   Text,
   ScrollView,
@@ -58,37 +57,41 @@ export default function HomeScreen() {
 
   const unit = settings.distanceUnit;
 
-  // Import any background-detected trips into the store once the app has
-  // fully rendered. We defer with InteractionManager so nothing touches the
-  // native bridge during the first frame. This also runs whenever the app
-  // returns to the foreground.
-  const syncingRef = useRef(false);
+  // After the app has rendered and the user is on the home screen, bring the
+  // background trip-detection foreground service up IF the user previously
+  // enabled it AND permissions are still granted. This is deferred with
+  // InteractionManager so nothing touches the native bridge during the first
+  // frame — that was the startup crash we're working around.
+  const bootstrapRef = useRef(false);
   useEffect(() => {
-    const runSync = () => {
-      if (syncingRef.current) return;
-      syncingRef.current = true;
-      InteractionManager.runAfterInteractions(() => {
-        (async () => {
-          try {
-            const mod = await import('@/utils/background-tracking');
-            await mod.syncPendingBackgroundTrips();
-          } catch (err) {
-            console.warn('[HomeScreen] background sync failed', err);
-          } finally {
-            syncingRef.current = false;
+    if (Platform.OS === 'web') return;
+    if (bootstrapRef.current) return;
+    bootstrapRef.current = true;
+
+    const handle = InteractionManager.runAfterInteractions(() => {
+      (async () => {
+        try {
+          const mod = await import('@/utils/background-tracking');
+          if (mod.isBackgroundTrackingActive()) return;
+
+          const wasEnabled = await mod.wasBackgroundTrackingEnabled();
+          if (!wasEnabled) return;
+
+          const perms = await mod.checkBackgroundPermissions();
+          if (perms.foreground !== 'granted' || perms.background !== 'granted') {
+            // User revoked permissions — don't auto-restart silently.
+            return;
           }
-        })();
-      });
-    };
-
-    runSync();
-
-    const sub = AppState.addEventListener('change', (next) => {
-      if (next === 'active') runSync();
+          await mod.enableBackgroundTracking();
+        } catch (err) {
+          console.warn('[HomeScreen] background bootstrap failed', err);
+        }
+      })();
     });
+
     return () => {
       try {
-        sub.remove();
+        handle.cancel?.();
       } catch {
         // ignore
       }

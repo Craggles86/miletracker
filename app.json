@@ -35,18 +35,14 @@
           "apiKey": "AIzaSyBNaUHLFvZTgSS7f8l2_C8QbxMxYRubYYA"
         }
       },
-      "foregroundService": {
-        "notificationTitle": "MileageTrack is tracking your trips",
-        "notificationBody": "Automatic trip detection is running. Tap to open the app.",
-        "notificationColor": "#4F46E5"
-      },
       "permissions": [
         "ACCESS_COARSE_LOCATION",
         "ACCESS_FINE_LOCATION",
         "ACCESS_BACKGROUND_LOCATION",
         "FOREGROUND_SERVICE",
         "FOREGROUND_SERVICE_LOCATION",
-        "POST_NOTIFICATIONS"
+        "POST_NOTIFICATIONS",
+        "WAKE_LOCK"
       ]
     },
     "web": {
@@ -71,8 +67,7 @@
           "locationWhenInUsePermission": "MileageTrack uses your location to log your trips while the app is open.",
           "locationAlwaysAndWhenInUsePermission": "MileageTrack uses your location in the background to automatically detect and log your trips.",
           "locationAlwaysPermission": "MileageTrack uses your location in the background to automatically detect and log your trips.",
-          "isAndroidBackgroundLocationEnabled": true,
-          "isAndroidForegroundServiceEnabled": true
+          "isAndroidBackgroundLocationEnabled": true
         }
       ],
       [
@@ -83,8 +78,7 @@
       ]
     ],
     "experiments": {
-      "typedRoutes": true,
-      "baseUrl": "/ecb0b3ff-c226-4b2e-96d9-32f69117089b/dev-preview/"
+      "typedRoutes": true
     },
     "owner": "craggles_86",
     "extra": {

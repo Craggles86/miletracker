@@ -1,5 +1,5 @@
 /**
- * Settings row that enables/disables background GPS trip auto-detection.
+ * Settings row that enables/disables the background GPS foreground service.
  *
  * Permission requests only fire when the user taps the toggle — never at app
  * startup. All native calls are wrapped in try/catch inside
@@ -15,6 +15,7 @@ import {
   disableBackgroundTracking,
   enableBackgroundTracking,
   isBackgroundTrackingActive,
+  wasBackgroundTrackingEnabled,
 } from '@/utils/background-tracking';
 
 function showAlert(title: string, message: string, onOpenSettings?: () => void) {
@@ -38,13 +39,18 @@ export function BackgroundTrackingToggle() {
   const [working, setWorking] = useState(false);
   const [ready, setReady] = useState(false);
 
-  // Check current status on mount — never throws, always resolves.
+  // Determine initial toggle state on mount — derived from the live service
+  // status, falling back to the persisted "enabled" flag.
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
-        const active = await isBackgroundTrackingActive();
-        if (!cancelled) setEnabled(active);
+        if (isBackgroundTrackingActive()) {
+          if (!cancelled) setEnabled(true);
+        } else {
+          const persisted = await wasBackgroundTrackingEnabled();
+          if (!cancelled) setEnabled(persisted);
+        }
       } catch {
         // ignore
       } finally {
@@ -77,7 +83,7 @@ export function BackgroundTrackingToggle() {
               'Permission required',
               Platform.OS === 'ios'
                 ? 'To auto-detect trips, allow location access “Always” in Settings.'
-                : 'To auto-detect trips, allow location access “All the time” in Settings.',
+                : 'To auto-detect trips, allow location access “All the time” and notifications in Settings.',
               () => {
                 Linking.openSettings().catch(() => {});
               }
@@ -172,7 +178,7 @@ export function BackgroundTrackingToggle() {
           ? 'Open MileageTrack on your phone to enable background trip detection.'
           : enabled
           ? 'Tracking in the background. Detected trips will appear in your trip list automatically.'
-          : 'Requires “Always” location permission. Uses a persistent notification while tracking.'}
+          : 'Requires “Always” location permission. A persistent notification keeps tracking active.'}
       </Text>
     </View>
   );
