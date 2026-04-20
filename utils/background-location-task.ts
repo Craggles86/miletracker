@@ -322,8 +322,14 @@ export function defineBackgroundLocationTask(): void {
   _defined = true;
 }
 
-// Register on import. Safe no-op on web.
-defineBackgroundLocationTask();
+// Register on import. Safe no-op on web. Wrapped so that any unexpected
+// failure here (e.g. native module mis-link) cannot crash the JS bundle
+// at load time.
+try {
+  defineBackgroundLocationTask();
+} catch (err) {
+  console.warn('[BackgroundLocation] define failed', err);
+}
 
 // ── Public helpers for starting/stopping the task ───────────────────────────
 

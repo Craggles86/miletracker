@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": 1776673511154,
+  "generatedAt": 1776674690101,
   "entries": {
     "RouteMapPreview@components/route-map-preview.tsx:26": {
       "element": {
@@ -963,26 +963,6 @@
               "col": 30,
               "endCol": 32,
               "raw": "10"
-            }
-          }
-        }
-      ]
-    },
-    "RootLayout@app/_layout.tsx:48": {
-      "element": {
-        "file": "app/_layout.tsx",
-        "line": 48
-      },
-      "styles": [
-        {
-          "origin": "inline",
-          "file": "app/_layout.tsx",
-          "properties": {
-            "flex": {
-              "line": 48,
-              "col": 43,
-              "endCol": 44,
-              "raw": "1"
             }
           }
         }
@@ -7894,6 +7874,154 @@
               "line": 431,
               "col": 27,
               "endCol": 33,
+              "raw": "'#fff'"
+            }
+          }
+        }
+      ]
+    },
+    "RootLayout@app/_layout.tsx:65": {
+      "element": {
+        "file": "app/_layout.tsx",
+        "line": 65
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "app/_layout.tsx",
+          "properties": {
+            "flex": {
+              "line": 65,
+              "col": 47,
+              "endCol": 48,
+              "raw": "1"
+            }
+          }
+        }
+      ]
+    },
+    "components/error-boundary.tsx:47": {
+      "element": {
+        "file": "components/error-boundary.tsx",
+        "line": 47
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/error-boundary.tsx",
+          "properties": {
+            "flex": {
+              "line": 49,
+              "col": 16,
+              "endCol": 17,
+              "raw": "1"
+            },
+            "padding": {
+              "line": 51,
+              "col": 19,
+              "endCol": 21,
+              "raw": "24"
+            },
+            "justifyContent": {
+              "line": 52,
+              "col": 26,
+              "endCol": 34,
+              "raw": "'center'"
+            }
+          }
+        }
+      ]
+    },
+    "components/error-boundary.tsx:56": {
+      "element": {
+        "file": "components/error-boundary.tsx",
+        "line": 56
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/error-boundary.tsx",
+          "properties": {
+            "fontSize": {
+              "line": 59,
+              "col": 24,
+              "endCol": 26,
+              "raw": "22"
+            },
+            "textAlign": {
+              "line": 61,
+              "col": 25,
+              "endCol": 33,
+              "raw": "'center'"
+            }
+          }
+        }
+      ]
+    },
+    "components/error-boundary.tsx:66": {
+      "element": {
+        "file": "components/error-boundary.tsx",
+        "line": 66
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/error-boundary.tsx",
+          "properties": {
+            "fontSize": {
+              "line": 70,
+              "col": 24,
+              "endCol": 26,
+              "raw": "14"
+            },
+            "textAlign": {
+              "line": 72,
+              "col": 25,
+              "endCol": 33,
+              "raw": "'center'"
+            },
+            "lineHeight": {
+              "line": 73,
+              "col": 26,
+              "endCol": 28,
+              "raw": "20"
+            }
+          }
+        }
+      ]
+    },
+    "components/error-boundary.tsx:78": {
+      "element": {
+        "file": "components/error-boundary.tsx",
+        "line": 78
+      },
+      "styles": [
+        {
+          "origin": "dynamic",
+          "resolvable": false
+        }
+      ]
+    },
+    "components/error-boundary.tsx:89": {
+      "element": {
+        "file": "components/error-boundary.tsx",
+        "line": 89
+      },
+      "styles": [
+        {
+          "origin": "inline",
+          "file": "components/error-boundary.tsx",
+          "properties": {
+            "fontSize": {
+              "line": 92,
+              "col": 26,
+              "endCol": 28,
+              "raw": "16"
+            },
+            "color": {
+              "line": 93,
+              "col": 23,
+              "endCol": 29,
               "raw": "'#fff'"
             }
           }

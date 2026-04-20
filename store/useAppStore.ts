@@ -202,6 +202,58 @@ export const useAppStore = create<AppStore>()(
         // and relaunched by the OS to deliver a background location update.
         activeTrip: state.activeTrip,
       }),
+      // Merge persisted state defensively — if AsyncStorage returned
+      // malformed/partial data, fall back to safe defaults so the app can
+      // boot. Without this, a missing field like `settings.businessHoursPerDay`
+      // would crash screens that read it.
+      merge: (persisted, current) => {
+        const p = (persisted ?? {}) as Partial<AppStore>;
+        const defaults = current;
+        return {
+          ...defaults,
+          ...p,
+          // Always keep function references from the freshly-created store.
+          addTrip: defaults.addTrip,
+          deleteTrip: defaults.deleteTrip,
+          updateTrip: defaults.updateTrip,
+          applyOdometerScaling: defaults.applyOdometerScaling,
+          startTrip: defaults.startTrip,
+          updateActiveTrip: defaults.updateActiveTrip,
+          addRoutePoint: defaults.addRoutePoint,
+          endTrip: defaults.endTrip,
+          updateSettings: defaults.updateSettings,
+          addFavourite: defaults.addFavourite,
+          deleteFavourite: defaults.deleteFavourite,
+          addOdometerRecord: defaults.addOdometerRecord,
+          // Deep-merge settings so newly-added fields are always present.
+          settings: {
+            ...defaults.settings,
+            ...(p.settings ?? {}),
+            businessHoursPerDay: {
+              ...defaults.settings.businessHoursPerDay,
+              ...(p.settings?.businessHoursPerDay ?? {}),
+            },
+          },
+          // Ensure collections are always arrays, even if persisted as null.
+          trips: Array.isArray(p.trips) ? p.trips : defaults.trips,
+          favourites: Array.isArray(p.favourites) ? p.favourites : defaults.favourites,
+          odometerRecords: Array.isArray(p.odometerRecords)
+            ? p.odometerRecords
+            : defaults.odometerRecords,
+          activeTrip: {
+            ...defaults.activeTrip,
+            ...(p.activeTrip ?? {}),
+            routePoints: Array.isArray(p.activeTrip?.routePoints)
+              ? p.activeTrip!.routePoints
+              : [],
+          },
+        } as AppStore;
+      },
+      onRehydrateStorage: () => (_state, error) => {
+        if (error) {
+          console.warn('[useAppStore] rehydrate failed', error);
+        }
+      },
     }
   )
 );

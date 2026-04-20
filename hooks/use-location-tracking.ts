@@ -185,7 +185,16 @@ export function useLocationTracking() {
   // ── Lifecycle: auto-start on mount, reconcile on foreground ────────────
   useEffect(() => {
     mountedRef.current = true;
-    startMonitoring();
+    // Defensive: never allow startMonitoring to throw synchronously —
+    // permission APIs can reject unexpectedly on first launch and we don't
+    // want to crash the root component tree.
+    try {
+      startMonitoring().catch((err) => {
+        console.warn('[LocationTracking] startMonitoring failed', err);
+      });
+    } catch (err) {
+      console.warn('[LocationTracking] startMonitoring threw', err);
+    }
 
     // If the background task is already registered (e.g. app was killed and
     // the OS relaunched us), sync the indicator state so the UI is accurate.
