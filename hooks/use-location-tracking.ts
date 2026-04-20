@@ -2,12 +2,6 @@ import { useEffect, useRef, useCallback, useState } from 'react';
 import { AppState, Platform } from 'react-native';
 import type { AppStateStatus } from 'react-native';
 import { useAppStore } from '@/store/useAppStore';
-import {
-  processLocationUpdate,
-  startBackgroundLocationUpdates,
-  stopBackgroundLocationUpdates,
-  isBackgroundTaskRegistered,
-} from '@/utils/background-location-task';
 
 type LocationModule = typeof import('expo-location');
 type NotificationsModule = typeof import('expo-notifications');
@@ -24,69 +18,123 @@ const initialPermissions: PermissionState = {
   notifications: 'undetermined',
 };
 
+// ── Lazy loaders for native modules ─────────────────────────────────────────
+// Kept lazy so a missing/broken native module cannot crash the hook on import.
+
+async function loadLocation(): Promise<LocationModule | null> {
+  try {
+    return await import('expo-location');
+  } catch (err) {
+    console.warn('[LocationTracking] expo-location unavailable', err);
+    return null;
+  }
+}
+
+async function loadNotifications(): Promise<NotificationsModule | null> {
+  try {
+    return await import('expo-notifications');
+  } catch (err) {
+    console.warn('[LocationTracking] expo-notifications unavailable', err);
+    return null;
+  }
+}
+
+async function safeProcessLocationUpdate(
+  args: {
+    latitude: number;
+    longitude: number;
+    speedKmh: number;
+    timestamp: number;
+  }
+): Promise<void> {
+  try {
+    const mod = await import('@/utils/background-location-task');
+    await mod.processLocationUpdate(args);
+  } catch (err) {
+    console.warn('[LocationTracking] processLocationUpdate failed', err);
+  }
+}
+
+async function safeStartBackground(): Promise<boolean> {
+  try {
+    const mod = await import('@/utils/background-location-task');
+    return await mod.startBackgroundLocationUpdates();
+  } catch (err) {
+    console.warn('[LocationTracking] background start failed', err);
+    return false;
+  }
+}
+
+async function safeStopBackground(): Promise<void> {
+  try {
+    const mod = await import('@/utils/background-location-task');
+    await mod.stopBackgroundLocationUpdates();
+  } catch (err) {
+    console.warn('[LocationTracking] background stop failed', err);
+  }
+}
+
+async function safeIsBackgroundRegistered(): Promise<boolean> {
+  try {
+    const mod = await import('@/utils/background-location-task');
+    return await mod.isBackgroundTaskRegistered();
+  } catch {
+    return false;
+  }
+}
+
 /**
- * Hook that drives the MileageTrack location tracking engine.
+ * Hook that drives MileageTrack's location tracking engine.
  *
- * - On native: registers the background location task so trips are tracked
- *   even when the app is fully closed. Falls back to a foreground watcher
- *   while the app is active to update the UI more smoothly.
- * - On web: uses `watchPositionAsync` only. Background tracking isn't
- *   supported on the web; feature gates keep the code safe.
+ * Tracking is **opt-in**: nothing happens unless `settings.trackingEnabled`
+ * is true. This prevents permission requests from blocking first launch, and
+ * makes crashes in location code impossible on a fresh install.
+ *
+ * - Native: foreground watcher + background task (if permission granted).
+ *   Background permission denial falls back to foreground-only.
+ * - Web: foreground watcher only.
  */
 export function useLocationTracking() {
   const activeTrip = useAppStore((s) => s.activeTrip);
+  const trackingEnabled = useAppStore((s) => s.settings.trackingEnabled);
+  const updateSettings = useAppStore((s) => s.updateSettings);
+
   const [permissions, setPermissions] = useState<PermissionState>(initialPermissions);
   const [backgroundActive, setBackgroundActive] = useState(false);
 
-  const locationModuleRef = useRef<LocationModule | null>(null);
-  const notificationsModuleRef = useRef<NotificationsModule | null>(null);
   const foregroundWatchRef = useRef<{ remove: () => void } | null>(null);
   const mountedRef = useRef(true);
 
-  // ── Module loaders ──────────────────────────────────────────────────────
-  const getLocation = useCallback(async (): Promise<LocationModule | null> => {
-    if (locationModuleRef.current) return locationModuleRef.current;
-    try {
-      const mod = await import('expo-location');
-      locationModuleRef.current = mod;
-      return mod;
-    } catch {
-      return null;
-    }
-  }, []);
-
-  const getNotifications = useCallback(async (): Promise<NotificationsModule | null> => {
-    if (notificationsModuleRef.current) return notificationsModuleRef.current;
-    try {
-      const mod = await import('expo-notifications');
-      notificationsModuleRef.current = mod;
-      return mod;
-    } catch {
-      return null;
-    }
-  }, []);
-
   // ── Permission handling ────────────────────────────────────────────────
   const requestPermissions = useCallback(async (): Promise<PermissionState> => {
-    const Location = await getLocation();
-    const Notifications = await getNotifications();
-
     const next: PermissionState = { ...initialPermissions };
+
+    const Location = await loadLocation();
+    const Notifications = await loadNotifications();
 
     if (Location) {
       try {
         const fg = await Location.requestForegroundPermissionsAsync();
         next.foreground = fg.status as PermissionState['foreground'];
+      } catch (err) {
+        console.warn('[LocationTracking] foreground perm request failed', err);
+        next.foreground = 'denied';
+      }
 
-        if (fg.status === 'granted' && Platform.OS !== 'web') {
+      if (next.foreground === 'granted' && Platform.OS !== 'web') {
+        try {
           const bg = await Location.requestBackgroundPermissionsAsync();
           next.background = bg.status as PermissionState['background'];
-        } else {
-          next.background = fg.status === 'granted' ? 'undetermined' : 'denied';
+        } catch (err) {
+          // Background permission can throw on Android if the user hasn't
+          // granted "Allow all the time" — treat as denied and carry on with
+          // foreground-only tracking.
+          console.warn('[LocationTracking] background perm request failed', err);
+          next.background = 'denied';
         }
-      } catch {
-        next.foreground = 'denied';
-        next.background = 'denied';
+      } else {
+        next.background =
+          next.foreground === 'granted' ? 'undetermined' : 'denied';
       }
     }
 
@@ -99,19 +147,20 @@ export function useLocationTracking() {
           const req = await Notifications.requestPermissionsAsync();
           next.notifications = req.status as PermissionState['notifications'];
         }
-      } catch {
+      } catch (err) {
+        console.warn('[LocationTracking] notifications perm request failed', err);
         next.notifications = 'denied';
       }
     }
 
     if (mountedRef.current) setPermissions(next);
     return next;
-  }, [getLocation, getNotifications]);
+  }, []);
 
-  // ── Foreground watcher (UI refresh while app is visible) ───────────────
+  // ── Foreground watcher ─────────────────────────────────────────────────
   const startForegroundWatcher = useCallback(async () => {
     if (foregroundWatchRef.current) return;
-    const Location = await getLocation();
+    const Location = await loadLocation();
     if (!Location) return;
 
     try {
@@ -122,83 +171,97 @@ export function useLocationTracking() {
           distanceInterval: 5,
         },
         (location) => {
-          const speedKmh = Math.max(0, (location.coords.speed ?? 0) * 3.6);
-          processLocationUpdate({
-            latitude: location.coords.latitude,
-            longitude: location.coords.longitude,
-            speedKmh,
-            timestamp: location.timestamp,
-          }).catch(() => {});
+          try {
+            const speedKmh = Math.max(0, (location.coords.speed ?? 0) * 3.6);
+            safeProcessLocationUpdate({
+              latitude: location.coords.latitude,
+              longitude: location.coords.longitude,
+              speedKmh,
+              timestamp: location.timestamp,
+            });
+          } catch (err) {
+            console.warn('[LocationTracking] watcher callback threw', err);
+          }
         }
       );
       foregroundWatchRef.current = sub;
     } catch (err) {
       console.warn('[LocationTracking] watchPositionAsync failed', err);
     }
-  }, [getLocation]);
+  }, []);
 
   const stopForegroundWatcher = useCallback(() => {
-    foregroundWatchRef.current?.remove();
+    try {
+      foregroundWatchRef.current?.remove();
+    } catch {
+      // ignore
+    }
     foregroundWatchRef.current = null;
   }, []);
 
-  // ── Background task control ────────────────────────────────────────────
-  const ensureBackgroundRunning = useCallback(async () => {
-    if (Platform.OS === 'web') return false;
-    const ok = await startBackgroundLocationUpdates();
-    if (mountedRef.current) setBackgroundActive(ok);
-    return ok;
-  }, []);
-
-  const stopBackground = useCallback(async () => {
-    if (Platform.OS === 'web') return;
-    await stopBackgroundLocationUpdates();
-    if (mountedRef.current) setBackgroundActive(false);
-  }, []);
-
-  // ── Public start/stop (called by UI or auto-start on mount) ────────────
+  // ── Public start/stop (called by UI when user toggles tracking) ────────
   const startMonitoring = useCallback(async () => {
-    const perms = await requestPermissions();
-    if (perms.foreground !== 'granted') return false;
+    try {
+      const perms = await requestPermissions();
+      if (perms.foreground !== 'granted') return false;
 
-    // Web: foreground only
-    if (Platform.OS === 'web') {
+      if (Platform.OS === 'web') {
+        await startForegroundWatcher();
+        return true;
+      }
+
+      if (perms.background === 'granted') {
+        const ok = await safeStartBackground();
+        if (mountedRef.current) setBackgroundActive(ok);
+      }
+
       await startForegroundWatcher();
       return true;
+    } catch (err) {
+      console.warn('[LocationTracking] startMonitoring threw', err);
+      return false;
     }
-
-    // Native: start the background task so the trip keeps tracking when
-    // the app is backgrounded/killed. If background permission is denied
-    // we fall back to a foreground-only watcher.
-    if (perms.background === 'granted') {
-      await ensureBackgroundRunning();
-    }
-    await startForegroundWatcher();
-    return true;
-  }, [requestPermissions, startForegroundWatcher, ensureBackgroundRunning]);
+  }, [requestPermissions, startForegroundWatcher]);
 
   const stopMonitoring = useCallback(async () => {
     stopForegroundWatcher();
-    await stopBackground();
-  }, [stopForegroundWatcher, stopBackground]);
+    try {
+      await safeStopBackground();
+    } catch {
+      // ignore
+    }
+    if (mountedRef.current) setBackgroundActive(false);
+  }, [stopForegroundWatcher]);
 
-  // ── Lifecycle: auto-start on mount, reconcile on foreground ────────────
+  // Convenience toggle for UI
+  const setTrackingEnabled = useCallback(
+    async (enabled: boolean) => {
+      try {
+        if (enabled) {
+          const ok = await startMonitoring();
+          updateSettings({ trackingEnabled: ok });
+          return ok;
+        } else {
+          await stopMonitoring();
+          updateSettings({ trackingEnabled: false });
+          return true;
+        }
+      } catch (err) {
+        console.warn('[LocationTracking] setTrackingEnabled failed', err);
+        updateSettings({ trackingEnabled: false });
+        return false;
+      }
+    },
+    [startMonitoring, stopMonitoring, updateSettings]
+  );
+
+  // ── Lifecycle: auto-start only if the user has previously opted in ─────
   useEffect(() => {
     mountedRef.current = true;
-    // Defensive: never allow startMonitoring to throw synchronously —
-    // permission APIs can reject unexpectedly on first launch and we don't
-    // want to crash the root component tree.
-    try {
-      startMonitoring().catch((err) => {
-        console.warn('[LocationTracking] startMonitoring failed', err);
-      });
-    } catch (err) {
-      console.warn('[LocationTracking] startMonitoring threw', err);
-    }
 
-    // If the background task is already registered (e.g. app was killed and
-    // the OS relaunched us), sync the indicator state so the UI is accurate.
-    isBackgroundTaskRegistered()
+    // Sync background indicator (if the OS relaunched us and the task is
+    // already registered).
+    safeIsBackgroundRegistered()
       .then((registered) => {
         if (registered && mountedRef.current) setBackgroundActive(true);
       })
@@ -207,18 +270,14 @@ export function useLocationTracking() {
     const appStateSub = AppState.addEventListener(
       'change',
       (nextState: AppStateStatus) => {
+        if (!trackingEnabled) return;
         if (nextState === 'active') {
-          // Re-attach foreground watcher when returning to the app. The
-          // background task keeps running independently.
           startForegroundWatcher().catch(() => {});
-          // Rehydrate the zustand store so any trips persisted by the
-          // background task show up immediately.
           const persist = (useAppStore as unknown as {
             persist?: { rehydrate?: () => Promise<void> };
           }).persist;
           persist?.rehydrate?.().catch(() => {});
         } else if (nextState === 'background' || nextState === 'inactive') {
-          // Release the foreground watcher — the background task continues.
           stopForegroundWatcher();
         }
       }
@@ -226,21 +285,46 @@ export function useLocationTracking() {
 
     return () => {
       mountedRef.current = false;
-      appStateSub.remove();
+      try { appStateSub.remove(); } catch { /* ignore */ }
       stopForegroundWatcher();
-      // Intentionally do NOT stop the background task on unmount — it must
-      // keep running when the app is backgrounded or closed.
+      // Intentionally do NOT stop the background task on unmount.
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // React to the tracking toggle. Start/stop the foreground watcher on
+  // enable/disable — the background task is managed by the toggle function.
+  useEffect(() => {
+    if (!trackingEnabled) {
+      stopForegroundWatcher();
+      return;
+    }
+    // Fire-and-forget. If permissions aren't granted yet, the watcher simply
+    // won't start — the user will need to toggle via settings which drives
+    // the permission prompt.
+    (async () => {
+      try {
+        const Location = await loadLocation();
+        if (!Location) return;
+        const fg = await Location.getForegroundPermissionsAsync();
+        if (fg.status === 'granted') {
+          startForegroundWatcher().catch(() => {});
+        }
+      } catch (err) {
+        console.warn('[LocationTracking] reconcile failed', err);
+      }
+    })();
+  }, [trackingEnabled, startForegroundWatcher, stopForegroundWatcher]);
+
   return {
     activeTrip,
     isTracking: activeTrip.isTracking,
+    trackingEnabled,
     permissions,
     backgroundActive,
     startMonitoring,
     stopMonitoring,
+    setTrackingEnabled,
     requestPermissions,
   };
 }

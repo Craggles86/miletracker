@@ -6,6 +6,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { Colors } from '@/constants/Colors';
 import { Fonts } from '@/constants/Typography';
 import { useAppStore } from '@/store/useAppStore';
+import { useLocationTracking } from '@/hooks/use-location-tracking';
 import { SettingsSection } from '@/components/settings-section';
 import { UnitToggle } from '@/components/unit-toggle';
 import { BusinessDayRow } from '@/components/business-day-row';
@@ -20,7 +21,19 @@ export default function SettingsScreen() {
   const settings = useAppStore((s) => s.settings);
   const updateSettings = useAppStore((s) => s.updateSettings);
   const trips = useAppStore((s) => s.trips);
+  const { trackingEnabled, setTrackingEnabled } = useLocationTracking();
   const [disclaimerVisible, setDisclaimerVisible] = useState(false);
+  const [togglingTracking, setTogglingTracking] = useState(false);
+
+  const handleToggleTracking = async (val: boolean) => {
+    if (togglingTracking) return;
+    setTogglingTracking(true);
+    try {
+      await setTrackingEnabled(val);
+    } finally {
+      setTogglingTracking(false);
+    }
+  };
 
   const handleDayChange = (day: string, schedule: DaySchedule) => {
     updateSettings({
@@ -322,7 +335,7 @@ export default function SettingsScreen() {
         </View>
       </Animated.View>
 
-      {/* GPS Info */}
+      {/* GPS Tracking toggle */}
       <Animated.View entering={FadeInDown.delay(700).duration(400)}>
         <View
           style={{
@@ -331,47 +344,71 @@ export default function SettingsScreen() {
             borderCurve: 'continuous',
             padding: 16,
             borderWidth: 1,
-            borderColor: Colors.border,
-            flexDirection: 'row',
-            alignItems: 'flex-start',
+            borderColor: trackingEnabled
+              ? `${Colors.primary}60`
+              : Colors.border,
             gap: 12,
           }}
         >
           <View
             style={{
-              width: 36,
-              height: 36,
-              borderRadius: 18,
-              backgroundColor: `${Colors.primary}20`,
+              flexDirection: 'row',
               alignItems: 'center',
-              justifyContent: 'center',
+              gap: 12,
             }}
           >
-            <Ionicons name="navigate" size={18} color={Colors.primary} />
-          </View>
-          <View style={{ flex: 1, gap: 4 }}>
-            <Text
+            <View
               style={{
-                fontFamily: Fonts.semiBold,
-                fontSize: 14,
-                color: Colors.textPrimary,
+                width: 36,
+                height: 36,
+                borderRadius: 18,
+                backgroundColor: `${Colors.primary}20`,
+                alignItems: 'center',
+                justifyContent: 'center',
               }}
             >
-              GPS Tracking
-            </Text>
-            <Text
-              style={{
-                fontFamily: Fonts.regular,
-                fontSize: 13,
-                color: Colors.textSecondary,
-                lineHeight: 18,
-              }}
-            >
-              Trips start automatically when speed exceeds 10 km/h and end after
-              5 minutes of inactivity within a 20m radius. Location permissions
-              must be granted.
-            </Text>
+              <Ionicons name="navigate" size={18} color={Colors.primary} />
+            </View>
+            <View style={{ flex: 1, gap: 2 }}>
+              <Text
+                style={{
+                  fontFamily: Fonts.semiBold,
+                  fontSize: 15,
+                  color: Colors.textPrimary,
+                }}
+              >
+                GPS Tracking
+              </Text>
+              <Text
+                style={{
+                  fontFamily: Fonts.regular,
+                  fontSize: 12,
+                  color: Colors.textSecondary,
+                }}
+              >
+                {trackingEnabled ? 'Enabled' : 'Disabled'}
+              </Text>
+            </View>
+            <Switch
+              value={trackingEnabled}
+              onValueChange={handleToggleTracking}
+              disabled={togglingTracking}
+              trackColor={{ false: Colors.surface, true: Colors.primary }}
+              thumbColor="#fff"
+            />
           </View>
+          <Text
+            style={{
+              fontFamily: Fonts.regular,
+              fontSize: 13,
+              color: Colors.textSecondary,
+              lineHeight: 18,
+            }}
+          >
+            Trips start automatically when speed exceeds 10 km/h and end after
+            5 minutes of inactivity within a 20 m radius. On Android, choose
+            &quot;Allow all the time&quot; to keep tracking in the background.
+          </Text>
         </View>
       </Animated.View>
 

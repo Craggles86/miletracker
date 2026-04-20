@@ -4,31 +4,21 @@ import { useFonts } from 'expo-font';
 import { FontMap } from '@/constants/Typography';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
+import { InteractionManager } from 'react-native';
 import { ThemeProvider, DarkTheme } from '@react-navigation/native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Colors } from '@/constants/Colors';
 import { DisclaimerGate } from '@/components/disclaimer-gate';
 import { ErrorBoundary } from '@/components/error-boundary';
-// Side-effect import: defines the background location task before the OS
-// delivers any deferred task events (required when the app is relaunched
-// by the OS for a background location update).
-import '@/utils/background-location-task';
-import { configureNotifications } from '@/utils/notifications-config';
 
-// Any init that runs at module load must be guarded — an uncaught exception
-// here would crash the app before any UI has a chance to render.
-try {
-  configureNotifications();
-} catch {
-  // Notifications aren't critical to app start — swallow.
-}
-
+// Prevent the splash screen auto-hiding before fonts load. Guarded because
+// preventAutoHideAsync can throw after fast refresh or if splash is already
+// dismissed — a throw here would crash the app before any UI mounts.
 try {
   SplashScreen.preventAutoHideAsync();
 } catch {
-  // preventAutoHideAsync can throw if the splash was already hidden
-  // (e.g. fast refresh). Safe to ignore.
+  // ignore
 }
 
 const appTheme = {
@@ -49,10 +39,36 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (loaded || error) {
-      SplashScreen.hideAsync().catch(() => {
-        // hideAsync can throw if splash was already dismissed
-      });
+      SplashScreen.hideAsync().catch(() => {});
     }
+  }, [loaded, error]);
+
+  // Defer non-critical initialisation (notifications config) until after the
+  // first render + interactions. This keeps the startup path bare-bones so a
+  // failure in an optional native module can't crash the app on launch.
+  useEffect(() => {
+    if (!loaded && !error) return;
+
+    const handle = InteractionManager.runAfterInteractions(() => {
+      (async () => {
+        try {
+          const { configureNotifications } = await import(
+            '@/utils/notifications-config'
+          );
+          configureNotifications();
+        } catch (err) {
+          console.warn('[RootLayout] notifications config failed', err);
+        }
+      })();
+    });
+
+    return () => {
+      try {
+        handle.cancel?.();
+      } catch {
+        // ignore
+      }
+    };
   }, [loaded, error]);
 
   if (!loaded && !error) {

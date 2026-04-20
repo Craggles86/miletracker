@@ -1,16 +1,16 @@
 /**
  * Background location task for MileageTrack.
  *
- * Registered at module load time (imported by the root layout) so the task
- * is available whenever the OS wakes the app to deliver a location update —
- * even if the JS app was fully killed.
+ * Every entry point is wrapped in layered try/catch + Platform gates so that
+ * missing native modules, denied permissions, or OS-level failures can never
+ * crash the JS bundle. The worst case is that background tracking silently
+ * does nothing.
  *
- * Web is unsupported — expo-task-manager is native-only. All module-level
- * side effects are gated by Platform.OS.
+ * Web: entirely no-op — expo-task-manager and expo-location background APIs
+ * are native-only.
  */
 
 import { Platform } from 'react-native';
-import { useAppStore } from '@/store/useAppStore';
 import { haversineDistance } from '@/utils/helpers';
 import type { LatLng } from '@/store/types';
 
@@ -23,6 +23,9 @@ const STATIONARY_RADIUS_M = 20;
 const ROUTE_POINT_MIN_DISTANCE_M = 15;
 
 // ── Lazy loaders ────────────────────────────────────────────────────────────
+// NOTE: We deliberately avoid a top-level `import` of expo-location /
+// expo-notifications / expo-task-manager so that any native link failure
+// cannot abort the initial JS bundle evaluation and crash the app.
 
 type TaskManagerModule = typeof import('expo-task-manager');
 type LocationModule = typeof import('expo-location');
@@ -38,7 +41,8 @@ async function loadTaskManager(): Promise<TaskManagerModule | null> {
   try {
     _taskManager = await import('expo-task-manager');
     return _taskManager;
-  } catch {
+  } catch (err) {
+    console.warn('[BackgroundLocation] expo-task-manager unavailable', err);
     return null;
   }
 }
@@ -48,7 +52,8 @@ async function loadLocation(): Promise<LocationModule | null> {
   try {
     _location = await import('expo-location');
     return _location;
-  } catch {
+  } catch (err) {
+    console.warn('[BackgroundLocation] expo-location unavailable', err);
     return null;
   }
 }
@@ -58,36 +63,77 @@ async function loadNotifications(): Promise<NotificationsModule | null> {
   try {
     _notifications = await import('expo-notifications');
     return _notifications;
-  } catch {
+  } catch (err) {
+    console.warn('[BackgroundLocation] expo-notifications unavailable', err);
     return null;
   }
 }
 
-// ── Hydration helper ────────────────────────────────────────────────────────
-// When the OS wakes the app, zustand's persist middleware rehydrates
-// asynchronously. We must wait for hydration before reading/writing state,
-// otherwise we would operate on the default (empty) state and overwrite
-// the persisted trips.
+// ── Zustand store loader ───────────────────────────────────────────────────
+// Lazy-load the store to break any chance of a circular import when the task
+// module is imported early during bundle evaluation (the store imports
+// helpers, which are also imported here).
 
-async function waitForHydration(): Promise<void> {
-  const persist = (useAppStore as unknown as {
-    persist?: {
-      hasHydrated?: () => boolean;
-      onFinishHydration?: (cb: () => void) => () => void;
-      rehydrate?: () => Promise<void>;
+type AppStoreLike = {
+  getState: () => {
+    activeTrip: {
+      isTracking: boolean;
+      currentDistance: number;
+      lastPosition: LatLng | null;
+      routePoints: LatLng[];
+      stationaryStartTime: string | null;
+      stationaryPosition: LatLng | null;
     };
-  }).persist;
+    settings: { distanceUnit: 'km' | 'miles' };
+    startTrip: (lat: number, lng: number) => void;
+    updateActiveTrip: (updates: Partial<{
+      currentSpeed: number;
+      currentDistance: number;
+      lastPosition: LatLng | null;
+      stationaryStartTime: string | null;
+      stationaryPosition: LatLng | null;
+    }>) => void;
+    addRoutePoint: (point: LatLng) => void;
+    endTrip: (startSuburb: string, endSuburb: string) => void;
+  };
+  persist?: {
+    hasHydrated?: () => boolean;
+    onFinishHydration?: (cb: () => void) => () => void;
+    rehydrate?: () => Promise<void>;
+  };
+};
 
+async function loadStore(): Promise<AppStoreLike | null> {
+  try {
+    const mod = await import('@/store/useAppStore');
+    return mod.useAppStore as unknown as AppStoreLike;
+  } catch (err) {
+    console.warn('[BackgroundLocation] store unavailable', err);
+    return null;
+  }
+}
+
+async function waitForHydration(store: AppStoreLike): Promise<void> {
+  const persist = store.persist;
   if (!persist) return;
   if (persist.hasHydrated?.()) return;
 
   await new Promise<void>((resolve) => {
-    const unsub = persist.onFinishHydration?.(() => {
-      unsub?.();
+    let resolved = false;
+    const finish = () => {
+      if (resolved) return;
+      resolved = true;
       resolve();
-    });
-    // Trigger rehydration in case it wasn't started
-    persist.rehydrate?.().then(() => resolve()).catch(() => resolve());
+    };
+    try {
+      const unsub = persist.onFinishHydration?.(() => {
+        try { unsub?.(); } catch { /* ignore */ }
+        finish();
+      });
+      persist.rehydrate?.().then(finish).catch(finish);
+    } catch {
+      finish();
+    }
   });
 }
 
@@ -116,9 +162,9 @@ async function reverseGeocodeSuburb(lat: number, lng: number): Promise<string> {
 // ── Notifications ───────────────────────────────────────────────────────────
 
 export async function notifyTripStarted(): Promise<void> {
-  const Notifications = await loadNotifications();
-  if (!Notifications) return;
   try {
+    const Notifications = await loadNotifications();
+    if (!Notifications) return;
     await Notifications.scheduleNotificationAsync({
       content: {
         title: 'Trip started',
@@ -131,10 +177,13 @@ export async function notifyTripStarted(): Promise<void> {
   }
 }
 
-export async function notifyTripEnded(distanceKm: number, unit: 'km' | 'miles' = 'km'): Promise<void> {
-  const Notifications = await loadNotifications();
-  if (!Notifications) return;
+export async function notifyTripEnded(
+  distanceKm: number,
+  unit: 'km' | 'miles' = 'km'
+): Promise<void> {
   try {
+    const Notifications = await loadNotifications();
+    if (!Notifications) return;
     const display =
       unit === 'miles'
         ? `${(distanceKm * 0.621371).toFixed(1)} mi`
@@ -152,8 +201,6 @@ export async function notifyTripEnded(distanceKm: number, unit: 'km' | 'miles' =
 }
 
 // ── Core location processor ─────────────────────────────────────────────────
-// Called by both the background task and the foreground watcher so behaviour
-// stays in sync across app states.
 
 export interface ProcessedLocation {
   latitude: number;
@@ -163,10 +210,17 @@ export interface ProcessedLocation {
 }
 
 export async function processLocationUpdate(loc: ProcessedLocation): Promise<void> {
-  await waitForHydration();
+  const store = await loadStore();
+  if (!store) return;
+
+  try {
+    await waitForHydration(store);
+  } catch {
+    // ignore — proceed with whatever state is available
+  }
 
   const { latitude, longitude, speedKmh } = loc;
-  const state = useAppStore.getState();
+  const state = store.getState();
   const trip = state.activeTrip;
 
   // ── Not tracking → auto-start when moving fast enough ──
@@ -174,7 +228,6 @@ export async function processLocationUpdate(loc: ProcessedLocation): Promise<voi
     if (speedKmh >= SPEED_START_THRESHOLD_KMH) {
       state.startTrip(latitude, longitude);
       state.updateActiveTrip({ currentSpeed: speedKmh });
-      // Fire-and-forget notification
       notifyTripStarted().catch(() => {});
     }
     return;
@@ -195,7 +248,6 @@ export async function processLocationUpdate(loc: ProcessedLocation): Promise<voi
 
   const newDistance = trip.currentDistance + addedDistance;
 
-  // Append route point if moved enough
   const lastRoutePoint =
     trip.routePoints.length > 0 ? trip.routePoints[trip.routePoints.length - 1] : null;
   if (
@@ -206,8 +258,8 @@ export async function processLocationUpdate(loc: ProcessedLocation): Promise<voi
     state.addRoutePoint({ lat: latitude, lng: longitude });
   }
 
-  // Stationary detection — use the stored anchor, fall back to last position
-  const stationaryAnchor: LatLng | null = trip.stationaryPosition ?? trip.lastPosition;
+  const stationaryAnchor: LatLng | null =
+    trip.stationaryPosition ?? trip.lastPosition;
   const distToAnchor = stationaryAnchor
     ? haversineDistance(stationaryAnchor.lat, stationaryAnchor.lng, latitude, longitude)
     : Infinity;
@@ -221,24 +273,26 @@ export async function processLocationUpdate(loc: ProcessedLocation): Promise<voi
     const elapsed = Date.now() - new Date(stationaryStart).getTime();
 
     if (elapsed >= STATIONARY_TIMEOUT_MS) {
-      // ── Auto-end the trip ──
-      // Ensure the latest distance is persisted before reading it in endTrip.
       state.updateActiveTrip({
         currentSpeed: speedKmh,
         currentDistance: newDistance,
       });
 
-      const routePts = useAppStore.getState().activeTrip.routePoints;
-      const startPt = routePts.length > 0 ? routePts[0] : { lat: latitude, lng: longitude };
-      const endPt = routePts.length > 0 ? routePts[routePts.length - 1] : { lat: latitude, lng: longitude };
+      const routePts = store.getState().activeTrip.routePoints;
+      const startPt =
+        routePts.length > 0 ? routePts[0] : { lat: latitude, lng: longitude };
+      const endPt =
+        routePts.length > 0
+          ? routePts[routePts.length - 1]
+          : { lat: latitude, lng: longitude };
 
       const [startSuburb, endSuburb] = await Promise.all([
         reverseGeocodeSuburb(startPt.lat, startPt.lng),
         reverseGeocodeSuburb(endPt.lat, endPt.lng),
       ]);
 
-      const unit = useAppStore.getState().settings.distanceUnit;
-      useAppStore.getState().endTrip(startSuburb, endSuburb);
+      const unit = store.getState().settings.distanceUnit;
+      store.getState().endTrip(startSuburb, endSuburb);
       notifyTripEnded(newDistance, unit).catch(() => {});
       return;
     }
@@ -260,9 +314,10 @@ export async function processLocationUpdate(loc: ProcessedLocation): Promise<voi
   }
 }
 
-// ── Task registration (module-level) ────────────────────────────────────────
-// MUST run synchronously at module load so the task is defined before the
-// OS delivers a background location event.
+// ── Task registration ───────────────────────────────────────────────────────
+// Must be called BEFORE the OS delivers any deferred task event. This is now
+// invoked from the app's entry (index.js / expo-router root) rather than from
+// React components. It is fully fire-and-forget: any failure is swallowed.
 
 type LocationTaskBody = {
   data?: {
@@ -283,60 +338,64 @@ let _defined = false;
 
 export function defineBackgroundLocationTask(): void {
   if (_defined) return;
-  if (Platform.OS === 'web') return;
-
-  // Synchronous require is required here — defineTask must be called at
-  // module load, before the runtime delivers any deferred task events.
-  let TaskManager: TaskManagerModule;
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    TaskManager = require('expo-task-manager') as TaskManagerModule;
-  } catch {
+  if (Platform.OS === 'web') {
+    _defined = true;
     return;
   }
 
-  TaskManager.defineTask(BACKGROUND_LOCATION_TASK, async (body: LocationTaskBody) => {
-    if (body.error) {
-      console.warn('[BackgroundLocation] task error', body.error);
-      return;
-    }
+  let TaskManager: TaskManagerModule | null = null;
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    TaskManager = require('expo-task-manager') as TaskManagerModule;
+  } catch (err) {
+    console.warn('[BackgroundLocation] defineTask skipped (module load failed)', err);
+    _defined = true; // don't retry — the module isn't available on this build
+    return;
+  }
 
-    const locations = body.data?.locations ?? [];
-    if (locations.length === 0) return;
-
-    for (const sample of locations) {
-      const speedKmh = Math.max(0, (sample.coords.speed ?? 0) * 3.6);
+  try {
+    TaskManager.defineTask(BACKGROUND_LOCATION_TASK, async (body: LocationTaskBody) => {
       try {
-        await processLocationUpdate({
-          latitude: sample.coords.latitude,
-          longitude: sample.coords.longitude,
-          speedKmh,
-          timestamp: sample.timestamp,
-        });
-      } catch (err) {
-        console.warn('[BackgroundLocation] processing error', err);
+        if (body.error) {
+          console.warn('[BackgroundLocation] task error', body.error);
+          return;
+        }
+
+        const locations = body.data?.locations ?? [];
+        if (locations.length === 0) return;
+
+        for (const sample of locations) {
+          try {
+            const speedKmh = Math.max(0, (sample.coords.speed ?? 0) * 3.6);
+            await processLocationUpdate({
+              latitude: sample.coords.latitude,
+              longitude: sample.coords.longitude,
+              speedKmh,
+              timestamp: sample.timestamp,
+            });
+          } catch (innerErr) {
+            console.warn('[BackgroundLocation] processing error', innerErr);
+          }
+        }
+      } catch (outerErr) {
+        // Never allow an error in the task handler to bubble out — the OS
+        // treats an unhandled rejection as a crash signal.
+        console.warn('[BackgroundLocation] task handler crashed', outerErr);
       }
-    }
-  });
-
-  _defined = true;
-}
-
-// Register on import. Safe no-op on web. Wrapped so that any unexpected
-// failure here (e.g. native module mis-link) cannot crash the JS bundle
-// at load time.
-try {
-  defineBackgroundLocationTask();
-} catch (err) {
-  console.warn('[BackgroundLocation] define failed', err);
+    });
+    _defined = true;
+  } catch (err) {
+    console.warn('[BackgroundLocation] defineTask threw', err);
+    _defined = true;
+  }
 }
 
 // ── Public helpers for starting/stopping the task ───────────────────────────
 
 export async function isBackgroundTaskRegistered(): Promise<boolean> {
-  const TaskManager = await loadTaskManager();
-  if (!TaskManager) return false;
   try {
+    const TaskManager = await loadTaskManager();
+    if (!TaskManager) return false;
     return await TaskManager.isTaskRegisteredAsync(BACKGROUND_LOCATION_TASK);
   } catch {
     return false;
@@ -346,15 +405,25 @@ export async function isBackgroundTaskRegistered(): Promise<boolean> {
 export async function startBackgroundLocationUpdates(): Promise<boolean> {
   if (Platform.OS === 'web') return false;
 
-  const Location = await loadLocation();
-  const TaskManager = await loadTaskManager();
-  if (!Location || !TaskManager) return false;
-
   try {
-    const already = await TaskManager.isTaskRegisteredAsync(BACKGROUND_LOCATION_TASK);
-    if (already) {
-      const isRunning = await Location.hasStartedLocationUpdatesAsync(BACKGROUND_LOCATION_TASK);
-      if (isRunning) return true;
+    // Ensure the task is defined before we try to start it. Safe no-op if
+    // already defined.
+    defineBackgroundLocationTask();
+
+    const Location = await loadLocation();
+    const TaskManager = await loadTaskManager();
+    if (!Location || !TaskManager) return false;
+
+    try {
+      const already = await TaskManager.isTaskRegisteredAsync(BACKGROUND_LOCATION_TASK);
+      if (already) {
+        const isRunning = await Location.hasStartedLocationUpdatesAsync(
+          BACKGROUND_LOCATION_TASK
+        );
+        if (isRunning) return true;
+      }
+    } catch {
+      // If we can't check, try to start anyway — starting is idempotent.
     }
 
     await Location.startLocationUpdatesAsync(BACKGROUND_LOCATION_TASK, {
@@ -381,10 +450,12 @@ export async function startBackgroundLocationUpdates(): Promise<boolean> {
 
 export async function stopBackgroundLocationUpdates(): Promise<void> {
   if (Platform.OS === 'web') return;
-  const Location = await loadLocation();
-  if (!Location) return;
   try {
-    const running = await Location.hasStartedLocationUpdatesAsync(BACKGROUND_LOCATION_TASK);
+    const Location = await loadLocation();
+    if (!Location) return;
+    const running = await Location.hasStartedLocationUpdatesAsync(
+      BACKGROUND_LOCATION_TASK
+    );
     if (running) {
       await Location.stopLocationUpdatesAsync(BACKGROUND_LOCATION_TASK);
     }
