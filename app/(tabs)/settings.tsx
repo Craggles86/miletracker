@@ -12,12 +12,15 @@ import { BusinessDayRow } from '@/components/business-day-row';
 import { LegalDisclaimerModal } from '@/components/legal-disclaimer-modal';
 import { BackgroundTrackingToggle } from '@/components/background-tracking-toggle';
 import { generateCSV, exportCSV } from '@/utils/csv-export';
+import { sendFeedbackEmail } from '@/utils/feedback';
+import { useTranslation } from '@/i18n/useTranslation';
 import type { DaySchedule } from '@/store/types';
 
 const DAY_ORDER = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
   const settings = useAppStore((s) => s.settings);
   const updateSettings = useAppStore((s) => s.updateSettings);
   const trips = useAppStore((s) => s.trips);
@@ -58,42 +61,42 @@ export default function SettingsScreen() {
             textAlign: 'center',
           }}
         >
-          Settings
+          {t('settings.title')}
         </Text>
       </Animated.View>
 
       {/* User Profile */}
       <Animated.View entering={FadeInDown.delay(100).duration(400)}>
-        <SettingsSection title="User Profile">
+        <SettingsSection title={t('settings.userProfile')}>
           <TextInput
             value={settings.userName}
-            onChangeText={(t) => updateSettings({ userName: t })}
-            placeholder="Name"
+            onChangeText={(txt) => updateSettings({ userName: txt })}
+            placeholder={t('settings.namePlaceholder')}
             placeholderTextColor={Colors.textSecondary}
             style={inputStyle}
           />
           <TextInput
             value={settings.vehicleMake}
-            onChangeText={(t) => updateSettings({ vehicleMake: t })}
-            placeholder="Vehicle Make (e.g. Toyota)"
+            onChangeText={(txt) => updateSettings({ vehicleMake: txt })}
+            placeholder={t('settings.vehicleMakePlaceholder')}
             placeholderTextColor={Colors.textSecondary}
             style={inputStyle}
           />
           <TextInput
             value={settings.vehicleModel}
-            onChangeText={(t) => updateSettings({ vehicleModel: t })}
-            placeholder="Vehicle Model (e.g. Corolla)"
+            onChangeText={(txt) => updateSettings({ vehicleModel: txt })}
+            placeholder={t('settings.vehicleModelPlaceholder')}
             placeholderTextColor={Colors.textSecondary}
             style={inputStyle}
           />
           <TextInput
             value={settings.vehicleYear}
-            onChangeText={(t) => {
+            onChangeText={(txt) => {
               // Allow only numeric characters, max 4 digits
-              const cleaned = t.replace(/[^0-9]/g, '').slice(0, 4);
+              const cleaned = txt.replace(/[^0-9]/g, '').slice(0, 4);
               updateSettings({ vehicleYear: cleaned });
             }}
-            placeholder="Vehicle Year (e.g. 2019)"
+            placeholder={t('settings.vehicleYearPlaceholder')}
             placeholderTextColor={Colors.textSecondary}
             keyboardType="numeric"
             maxLength={4}
@@ -101,19 +104,19 @@ export default function SettingsScreen() {
           />
           <TextInput
             value={settings.vehicleRegistration}
-            onChangeText={(t) => updateSettings({ vehicleRegistration: t })}
-            placeholder="Registration / License Plate"
+            onChangeText={(txt) => updateSettings({ vehicleRegistration: txt })}
+            placeholder={t('settings.registrationPlaceholder')}
             placeholderTextColor={Colors.textSecondary}
             autoCapitalize="characters"
             style={inputStyle}
           />
           <TextInput
             value={settings.startingOdometer != null ? String(settings.startingOdometer) : ''}
-            onChangeText={(t) => {
-              const val = parseFloat(t);
+            onChangeText={(txt) => {
+              const val = parseFloat(txt);
               updateSettings({ startingOdometer: isNaN(val) ? null : val });
             }}
-            placeholder="Starting Odometer"
+            placeholder={t('settings.startingOdometerPlaceholder')}
             placeholderTextColor={Colors.textSecondary}
             keyboardType="numeric"
             style={inputStyle}
@@ -154,7 +157,7 @@ export default function SettingsScreen() {
                   color: Colors.textPrimary,
                 }}
               >
-                Log All Trips as Business
+                {t('settings.logAllTitle')}
               </Text>
               <Text
                 style={{
@@ -163,7 +166,7 @@ export default function SettingsScreen() {
                   color: Colors.textSecondary,
                 }}
               >
-                Overrides business hours schedule below
+                {t('settings.logAllSubtitle')}
               </Text>
             </View>
           </View>
@@ -178,7 +181,7 @@ export default function SettingsScreen() {
 
       {/* Smart Business Classification */}
       <Animated.View entering={FadeInDown.delay(300).duration(400)}>
-        <SettingsSection title="Smart Business Classification">
+        <SettingsSection title={t('settings.smartClassification')}>
           <Text
             style={{
               fontFamily: Fonts.semiBold,
@@ -187,7 +190,7 @@ export default function SettingsScreen() {
               marginBottom: 4,
             }}
           >
-            Business Hours Schedule
+            {t('settings.businessHoursSchedule')}
           </Text>
           {DAY_ORDER.map((day) => (
             <BusinessDayRow
@@ -208,21 +211,25 @@ export default function SettingsScreen() {
 
       {/* Distance Unit */}
       <Animated.View entering={FadeInDown.delay(400).duration(400)}>
-        <SettingsSection title="Distance Unit">
+        <SettingsSection title={t('settings.distanceUnit')}>
           <UnitToggle
             value={settings.distanceUnit}
-            onChange={(unit) => updateSettings({ distanceUnit: unit })}
+            onChange={(unit) =>
+              // Mark as auto-detected=true so locale detection doesn't override
+              // the user's explicit selection on future launches.
+              updateSettings({ distanceUnit: unit, distanceUnitAutoDetected: true })
+            }
           />
         </SettingsSection>
       </Animated.View>
 
       {/* Auto Export */}
       <Animated.View entering={FadeInDown.delay(500).duration(400)}>
-        <SettingsSection title="Auto Export (End of Financial Year)">
+        <SettingsSection title={t('settings.autoExport')}>
           <TextInput
             value={settings.exportEmail}
-            onChangeText={(t) => updateSettings({ exportEmail: t })}
-            placeholder="Email Address"
+            onChangeText={(txt) => updateSettings({ exportEmail: txt })}
+            placeholder={t('settings.emailPlaceholder')}
             placeholderTextColor={Colors.textSecondary}
             keyboardType="email-address"
             autoCapitalize="none"
@@ -242,7 +249,7 @@ export default function SettingsScreen() {
                 color: Colors.textPrimary,
               }}
             >
-              Enable Auto Export
+              {t('settings.enableAutoExport')}
             </Text>
             <Switch
               value={settings.autoExportEnabled}
@@ -271,7 +278,7 @@ export default function SettingsScreen() {
                 color: Colors.primary,
               }}
             >
-              Export to CSV
+              {t('settings.exportToCsv')}
             </Text>
           </Pressable>
         </SettingsSection>
@@ -300,7 +307,7 @@ export default function SettingsScreen() {
                 color: Colors.textPrimary,
               }}
             >
-              Weekly Odometer Prompt
+              {t('settings.weeklyOdoTitle')}
             </Text>
             <Text
               style={{
@@ -309,7 +316,7 @@ export default function SettingsScreen() {
                 color: Colors.textSecondary,
               }}
             >
-              Calibrate GPS distances weekly
+              {t('settings.weeklyOdoSubtitle')}
             </Text>
           </View>
           <Switch
@@ -368,7 +375,7 @@ export default function SettingsScreen() {
                   color: Colors.textPrimary,
                 }}
               >
-                Manual Trip Tracking
+                {t('settings.manualTitle')}
               </Text>
               <Text
                 style={{
@@ -377,7 +384,7 @@ export default function SettingsScreen() {
                   color: Colors.textSecondary,
                 }}
               >
-                Start & stop trips from the home screen
+                {t('settings.manualSubtitle')}
               </Text>
             </View>
           </View>
@@ -389,11 +396,65 @@ export default function SettingsScreen() {
               lineHeight: 18,
             }}
           >
-            Tap &quot;Start Trip&quot; on the home screen before driving, then
-            &quot;Stop Trip&quot; when you arrive. Keep the app open while
-            driving so GPS distance can be recorded.
+            {t('settings.manualDescription')}
           </Text>
         </View>
+      </Animated.View>
+
+      {/* Send Feedback */}
+      <Animated.View entering={FadeInDown.delay(780).duration(400)}>
+        <Pressable
+          onPress={sendFeedbackEmail}
+          style={({ pressed }) => ({
+            backgroundColor: Colors.card,
+            borderRadius: 14,
+            borderCurve: 'continuous',
+            padding: 16,
+            borderWidth: 1,
+            borderColor: Colors.border,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            opacity: pressed ? 0.7 : 1,
+          })}
+        >
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 }}>
+            <View
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: 18,
+                backgroundColor: `${Colors.primary}20`,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Ionicons name="mail-outline" size={18} color={Colors.primary} />
+            </View>
+            <View style={{ flex: 1, gap: 2 }}>
+              <Text
+                style={{
+                  fontFamily: Fonts.semiBold,
+                  fontSize: 15,
+                  color: Colors.textPrimary,
+                }}
+              >
+                {t('settings.sendFeedback')}
+              </Text>
+              <Text
+                style={{
+                  fontFamily: Fonts.regular,
+                  fontSize: 12,
+                  color: Colors.textSecondary,
+                }}
+                numberOfLines={1}
+              >
+                {t('settings.feedbackSubtitle')}
+              </Text>
+            </View>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={Colors.textSecondary} />
+        </Pressable>
       </Animated.View>
 
       {/* Legal Disclaimer */}
@@ -433,7 +494,7 @@ export default function SettingsScreen() {
                 color: Colors.textPrimary,
               }}
             >
-              Legal Disclaimer
+              {t('settings.legalDisclaimer')}
             </Text>
           </View>
           <Ionicons name="chevron-forward" size={18} color={Colors.textSecondary} />

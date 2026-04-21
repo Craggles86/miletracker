@@ -5,6 +5,7 @@
  */
 
 import { Platform } from 'react-native';
+import { t } from '@/i18n/useTranslation';
 
 let _configured = false;
 
@@ -28,7 +29,7 @@ export function configureNotifications(): void {
 
       if (Platform.OS === 'android') {
         await Notifications.setNotificationChannelAsync('mileagetrack-trips', {
-          name: 'Trip tracking',
+          name: t('notifications.channelName'),
           importance: Notifications.AndroidImportance.DEFAULT,
           vibrationPattern: [0, 250, 250, 250],
           lightColor: '#4F46E5',

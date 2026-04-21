@@ -14,8 +14,10 @@ import { Colors } from '@/constants/Colors';
 import { Fonts } from '@/constants/Typography';
 import { useAppStore } from '@/store/useAppStore';
 import { formatDistance, formatDuration, formatSpeed } from '@/utils/helpers';
+import { useTranslation } from '@/i18n/useTranslation';
 
 export function TripStatusRing() {
+  const { t } = useTranslation();
   const activeTrip = useAppStore((s) => s.activeTrip);
   const settings = useAppStore((s) => s.settings);
   const isActive = activeTrip.isTracking;
@@ -142,7 +144,7 @@ export function TripStatusRing() {
               textTransform: 'uppercase',
             }}
           >
-            {isActive ? 'ACTIVE TRIP' : 'No Active Trip'}
+            {isActive ? t('ring.activeTrip') : t('ring.noActiveTrip')}
           </Text>
 
           {isActive ? (
@@ -194,7 +196,7 @@ export function TripStatusRing() {
                 marginTop: 2,
               }}
             >
-              Waiting for movement...
+              {t('ring.waiting')}
             </Text>
           )}
         </View>

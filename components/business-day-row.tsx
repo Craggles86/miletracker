@@ -12,6 +12,7 @@ import {
 import { Colors } from '@/constants/Colors';
 import { Fonts } from '@/constants/Typography';
 import { formatDisplayTime } from '@/utils/helpers';
+import { useTranslation } from '@/i18n/useTranslation';
 import type { DaySchedule } from '@/store/types';
 
 interface BusinessDayRowProps {
@@ -149,6 +150,8 @@ function WheelColumn({ data, selectedValue, onValueChange, formatLabel }: WheelC
 }
 
 export function BusinessDayRow({ day, schedule, onChange }: BusinessDayRowProps) {
+  const { t } = useTranslation();
+  const dayLabel = t(`businessDay.days.${day}`);
   const [pickingField, setPickingField] = useState<'start' | 'end' | null>(null);
 
   const currentTimeStr = pickingField === 'start' ? schedule.startTime : schedule.endTime;
@@ -203,7 +206,7 @@ export function BusinessDayRow({ day, schedule, onChange }: BusinessDayRowProps)
             width: 32,
           }}
         >
-          {day}
+          {dayLabel}
         </Text>
 
         {/* Toggle */}
@@ -317,7 +320,7 @@ export function BusinessDayRow({ day, schedule, onChange }: BusinessDayRowProps)
                 textAlign: 'center',
               }}
             >
-              {day} — {pickingField === 'start' ? 'Start Time' : 'End Time'}
+              {dayLabel} — {pickingField === 'start' ? t('businessDay.startTime') : t('businessDay.endTime')}
             </Text>
 
             {/* Preview of selected time */}
@@ -349,7 +352,7 @@ export function BusinessDayRow({ day, schedule, onChange }: BusinessDayRowProps)
                   letterSpacing: 0.5,
                 }}
               >
-                Hour
+                {t('businessDay.hour')}
               </Text>
               <Text
                 style={{
@@ -362,7 +365,7 @@ export function BusinessDayRow({ day, schedule, onChange }: BusinessDayRowProps)
                   letterSpacing: 0.5,
                 }}
               >
-                Minute
+                {t('businessDay.minute')}
               </Text>
             </View>
 
@@ -409,7 +412,7 @@ export function BusinessDayRow({ day, schedule, onChange }: BusinessDayRowProps)
                     color: Colors.textSecondary,
                   }}
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </Text>
               </Pressable>
               <Pressable
@@ -431,7 +434,7 @@ export function BusinessDayRow({ day, schedule, onChange }: BusinessDayRowProps)
                     color: '#fff',
                   }}
                 >
-                  Confirm
+                  {t('common.confirm')}
                 </Text>
               </Pressable>
             </View>

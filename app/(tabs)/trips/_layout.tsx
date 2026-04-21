@@ -1,7 +1,9 @@
 import { Stack } from 'expo-router/stack';
 import { Colors } from '@/constants/Colors';
+import { useTranslation } from '@/i18n/useTranslation';
 
 export default function TripsLayout() {
+  const { t } = useTranslation();
   return (
     <Stack
       screenOptions={{
@@ -14,8 +16,8 @@ export default function TripsLayout() {
         name="[id]"
         options={{
           headerShown: true,
-          headerTitle: 'Trip Detail',
-          headerBackTitle: 'Trips',
+          headerTitle: t('trips.detailTitle'),
+          headerBackTitle: t('tabs.trips'),
           headerStyle: { backgroundColor: Colors.background },
           headerTintColor: Colors.textPrimary,
           headerShadowVisible: false,

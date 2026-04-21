@@ -79,4 +79,7 @@ export interface Settings {
   exportEmail: string;
   autoExportEnabled: boolean;
   financialYearType: 'AU' | 'calendar';
+  // True once the app has applied a locale-derived default distance unit. This
+  // prevents the auto-detect logic from ever overriding a manual user choice.
+  distanceUnitAutoDetected: boolean;
 }

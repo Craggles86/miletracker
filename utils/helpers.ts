@@ -34,6 +34,42 @@ export function formatDuration(seconds: number): string {
   return `${mins} min`;
 }
 
+// Format a trip date using the current i18n locale so month names etc. match
+// the app language. Falls back silently if the locale is unsupported.
+export function formatTripDateLocale(isoString: string, locale: string): string {
+  try {
+    const date = new Date(isoString);
+    return date.toLocaleDateString(locale, {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
+  } catch {
+    return new Date(isoString).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
+  }
+}
+
+// Format a time using the current i18n locale so 12/24h conventions match.
+export function formatTimeLocale(isoString: string, locale: string): string {
+  try {
+    const date = new Date(isoString);
+    return date.toLocaleTimeString(locale, {
+      hour: 'numeric',
+      minute: '2-digit',
+    });
+  } catch {
+    return new Date(isoString).toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
+  }
+}
+
 // Format distance with unit
 export function formatDistance(km: number, unit: 'km' | 'miles'): string {
   if (unit === 'miles') {
@@ -172,6 +208,7 @@ export function getDefaultSettings(): Settings {
     exportEmail: '',
     autoExportEnabled: false,
     financialYearType: 'AU',
+    distanceUnitAutoDetected: false,
   };
 }
 

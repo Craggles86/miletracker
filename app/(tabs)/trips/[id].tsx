@@ -7,12 +7,14 @@ import { Colors } from '@/constants/Colors';
 import { Fonts } from '@/constants/Typography';
 import { useAppStore } from '@/store/useAppStore';
 import { RouteMapPreview } from '@/components/route-map-preview';
-import { formatDistance, formatDuration, formatTripDate, formatTime } from '@/utils/helpers';
+import { formatDistance, formatDuration, formatTripDateLocale, formatTimeLocale } from '@/utils/helpers';
+import { useTranslation } from '@/i18n/useTranslation';
 
 export default function TripDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const trip = useAppStore((s) => s.trips.find((t) => t.id === id));
+  const trip = useAppStore((s) => s.trips.find((tr) => tr.id === id));
   const unit = useAppStore((s) => s.settings.distanceUnit);
+  const { t, locale } = useTranslation();
 
   if (!trip) {
     return (
@@ -25,7 +27,7 @@ export default function TripDetailScreen() {
           gap: 12,
         }}
       >
-        <Stack.Screen options={{ title: 'Trip Detail' }} />
+        <Stack.Screen options={{ title: t('trips.detailTitle') }} />
         <Ionicons name="alert-circle-outline" size={48} color={Colors.textSecondary} />
         <Text
           style={{
@@ -34,7 +36,7 @@ export default function TripDetailScreen() {
             color: Colors.textSecondary,
           }}
         >
-          Trip not found
+          {t('trips.notFound')}
         </Text>
       </View>
     );
@@ -42,6 +44,7 @@ export default function TripDetailScreen() {
 
   const isBusiness = trip.purpose === 'Business';
   const badgeColor = isBusiness ? Colors.businessBadge : Colors.personalBadge;
+  const purposeLabel = isBusiness ? t('trips.business') : t('trips.personal');
 
   return (
     <ScrollView
@@ -107,7 +110,7 @@ export default function TripDetailScreen() {
             }}
           >
             <Text style={{ fontFamily: Fonts.semiBold, fontSize: 12, color: '#fff' }}>
-              {trip.purpose}
+              {purposeLabel}
             </Text>
           </View>
         </View>
@@ -116,32 +119,32 @@ export default function TripDetailScreen() {
         <View style={{ gap: 14 }}>
           <DetailRow
             icon="calendar-outline"
-            label="Date"
-            value={formatTripDate(trip.startTime)}
+            label={t('trips.date')}
+            value={formatTripDateLocale(trip.startTime, locale)}
           />
           <DetailRow
             icon="time-outline"
-            label="Time"
-            value={`${formatTime(trip.startTime)} — ${formatTime(trip.endTime)}`}
+            label={t('trips.time')}
+            value={`${formatTimeLocale(trip.startTime, locale)} — ${formatTimeLocale(trip.endTime, locale)}`}
           />
           <DetailRow
             icon="navigate-outline"
-            label="Distance"
+            label={t('trips.distance')}
             value={formatDistance(trip.distance, unit)}
           />
           <DetailRow
             icon="hourglass-outline"
-            label="Duration"
+            label={t('trips.duration')}
             value={formatDuration(trip.duration)}
           />
           <DetailRow
             icon="location-outline"
-            label="From"
+            label={t('trips.from')}
             value={trip.startSuburb}
           />
           <DetailRow
             icon="flag-outline"
-            label="To"
+            label={t('trips.to')}
             value={trip.endSuburb}
           />
         </View>

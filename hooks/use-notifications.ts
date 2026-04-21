@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import { t } from '@/i18n/useTranslation';
 
 // Lazy-load expo-notifications to avoid web crashes
 async function getNotifications() {
@@ -23,8 +24,8 @@ export function useNotifications() {
     try {
       await Notifications.scheduleNotificationAsync({
         content: {
-          title: 'Trip started',
-          body: 'MileageTrack is logging your journey',
+          title: t('notifications.tripStartedTitle'),
+          body: t('notifications.tripStartedBody'),
           sound: false,
         },
         trigger: null, // fire immediately
@@ -40,8 +41,10 @@ export function useNotifications() {
     try {
       await Notifications.scheduleNotificationAsync({
         content: {
-          title: 'Trip ended',
-          body: `${distanceKm.toFixed(1)} km logged`,
+          title: t('notifications.tripEndedTitle'),
+          body: t('notifications.tripEndedBody', {
+            distance: `${distanceKm.toFixed(1)} km`,
+          }),
           sound: false,
         },
         trigger: null,
@@ -57,8 +60,8 @@ export function useNotifications() {
     try {
       await Notifications.scheduleNotificationAsync({
         content: {
-          title: 'Weekly odometer check',
-          body: 'Time to record your odometer reading for accurate mileage',
+          title: t('notifications.odoPromptTitle'),
+          body: t('notifications.odoPromptBody'),
           sound: true,
         },
         trigger: null,

@@ -17,6 +17,7 @@ import {
   isBackgroundTrackingActive,
   wasBackgroundTrackingEnabled,
 } from '@/utils/background-tracking';
+import { useTranslation, t as tx } from '@/i18n/useTranslation';
 
 function showAlert(title: string, message: string, onOpenSettings?: () => void) {
   if (Platform.OS === 'web') {
@@ -27,14 +28,15 @@ function showAlert(title: string, message: string, onOpenSettings?: () => void) 
     text: string;
     onPress?: () => void;
     style?: 'default' | 'cancel';
-  }[] = [{ text: 'OK', style: 'default' }];
+  }[] = [{ text: tx('common.ok'), style: 'default' }];
   if (onOpenSettings) {
-    buttons.unshift({ text: 'Open settings', onPress: onOpenSettings });
+    buttons.unshift({ text: tx('common.openSettings'), onPress: onOpenSettings });
   }
   Alert.alert(title, message, buttons);
 }
 
 export function BackgroundTrackingToggle() {
+  const { t } = useTranslation();
   const [enabled, setEnabled] = useState(false);
   const [working, setWorking] = useState(false);
   const [ready, setReady] = useState(false);
@@ -70,8 +72,8 @@ export function BackgroundTrackingToggle() {
         if (next) {
           if (Platform.OS === 'web') {
             showAlert(
-              'Not supported on web',
-              'Background trip tracking is only available on the iOS and Android apps.'
+              t('autoTrack.notSupportedWebTitle'),
+              t('autoTrack.notSupportedWebMessage')
             );
             return;
           }
@@ -80,10 +82,10 @@ export function BackgroundTrackingToggle() {
             setEnabled(true);
           } else if (res.reason === 'permission') {
             showAlert(
-              'Permission required',
+              t('autoTrack.permissionTitle'),
               Platform.OS === 'ios'
-                ? 'To auto-detect trips, allow location access “Always” in Settings.'
-                : 'To auto-detect trips, allow location access “All the time” and notifications in Settings.',
+                ? t('autoTrack.permissionIosMessage')
+                : t('autoTrack.permissionAndroidMessage'),
               () => {
                 Linking.openSettings().catch(() => {});
               }
@@ -91,13 +93,13 @@ export function BackgroundTrackingToggle() {
             setEnabled(false);
           } else if (res.reason === 'unsupported') {
             showAlert(
-              'Not available',
-              'Background trip tracking is not available on this device.'
+              t('autoTrack.notAvailableTitle'),
+              t('autoTrack.notAvailableMessage')
             );
           } else {
             showAlert(
-              'Couldn’t enable tracking',
-              'Something went wrong starting the background location service. Please try again.'
+              t('autoTrack.genericErrorTitle'),
+              t('autoTrack.genericErrorMessage')
             );
           }
         } else {
@@ -110,7 +112,7 @@ export function BackgroundTrackingToggle() {
         setWorking(false);
       }
     },
-    [working]
+    [working, t]
   );
 
   return (
@@ -146,7 +148,7 @@ export function BackgroundTrackingToggle() {
               color: Colors.textPrimary,
             }}
           >
-            Auto-Detect Trips
+            {t('autoTrack.title')}
           </Text>
           <Text
             style={{
@@ -155,7 +157,7 @@ export function BackgroundTrackingToggle() {
               color: Colors.textSecondary,
             }}
           >
-            Starts a trip when you drive, ends after 5 min stopped.
+            {t('autoTrack.subtitle')}
           </Text>
         </View>
         <Switch
@@ -175,10 +177,10 @@ export function BackgroundTrackingToggle() {
         }}
       >
         {Platform.OS === 'web'
-          ? 'Open MileageTrack on your phone to enable background trip detection.'
+          ? t('autoTrack.web')
           : enabled
-          ? 'Tracking in the background. Detected trips will appear in your trip list automatically.'
-          : 'Requires “Always” location permission. A persistent notification keeps tracking active.'}
+          ? t('autoTrack.enabled')
+          : t('autoTrack.disabled')}
       </Text>
     </View>
   );

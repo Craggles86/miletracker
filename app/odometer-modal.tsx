@@ -7,9 +7,11 @@ import { Colors } from '@/constants/Colors';
 import { Fonts } from '@/constants/Typography';
 import { useAppStore } from '@/store/useAppStore';
 import { getWeekId } from '@/utils/helpers';
+import { useTranslation } from '@/i18n/useTranslation';
 
 export default function OdometerModal() {
   const router = useRouter();
+  const { t } = useTranslation();
   const settings = useAppStore((s) => s.settings);
   const updateSettings = useAppStore((s) => s.updateSettings);
   const trips = useAppStore((s) => s.trips);
@@ -25,12 +27,12 @@ export default function OdometerModal() {
   const handleSubmit = () => {
     const odoValue = parseFloat(reading);
     if (isNaN(odoValue) || odoValue <= 0) {
-      setError('Please enter a valid odometer reading');
+      setError(t('odometer.invalidReading'));
       return;
     }
 
     if (lastReading !== null && odoValue < lastReading) {
-      setError('Reading must be greater than the previous reading');
+      setError(t('odometer.readingTooLow'));
       return;
     }
 
@@ -97,7 +99,7 @@ export default function OdometerModal() {
             textAlign: 'center',
           }}
         >
-          Weekly Odometer Check
+          {t('odometer.title')}
         </Text>
         <Text
           style={{
@@ -109,8 +111,7 @@ export default function OdometerModal() {
             lineHeight: 20,
           }}
         >
-          Enter your current odometer reading to calibrate GPS distances and
-          improve accuracy.
+          {t('odometer.description')}
         </Text>
       </Animated.View>
 
@@ -133,7 +134,7 @@ export default function OdometerModal() {
               color: Colors.textSecondary,
             }}
           >
-            Last reading:{' '}
+            {t('odometer.lastReading')}{' '}
             <Text
               selectable
               style={{
@@ -156,15 +157,15 @@ export default function OdometerModal() {
             color: Colors.textPrimary,
           }}
         >
-          Current odometer reading
+          {t('odometer.currentReading')}
         </Text>
         <TextInput
           value={reading}
-          onChangeText={(t) => {
-            setReading(t);
+          onChangeText={(txt) => {
+            setReading(txt);
             setError('');
           }}
-          placeholder="e.g. 45,230"
+          placeholder={t('odometer.placeholder')}
           placeholderTextColor={Colors.textSecondary}
           keyboardType="numeric"
           style={{
@@ -210,7 +211,7 @@ export default function OdometerModal() {
           <Text
             style={{ fontFamily: Fonts.semiBold, fontSize: 16, color: '#fff' }}
           >
-            Save Reading
+            {t('odometer.saveReading')}
           </Text>
         </Pressable>
 
@@ -229,7 +230,7 @@ export default function OdometerModal() {
               color: Colors.textSecondary,
             }}
           >
-            Skip for now
+            {t('odometer.skip')}
           </Text>
         </Pressable>
       </View>

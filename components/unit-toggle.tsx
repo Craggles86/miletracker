@@ -1,6 +1,7 @@
 import { View, Text, Pressable } from 'react-native';
 import { Colors } from '@/constants/Colors';
 import { Fonts } from '@/constants/Typography';
+import { useTranslation } from '@/i18n/useTranslation';
 
 interface UnitToggleProps {
   value: 'km' | 'miles';
@@ -8,6 +9,7 @@ interface UnitToggleProps {
 }
 
 export function UnitToggle({ value, onChange }: UnitToggleProps) {
+  const { t } = useTranslation();
   return (
     <View
       style={{
@@ -20,7 +22,7 @@ export function UnitToggle({ value, onChange }: UnitToggleProps) {
     >
       {(['km', 'miles'] as const).map((unit) => {
         const isSelected = value === unit;
-        const label = unit === 'km' ? 'Kilometres' : 'Miles';
+        const label = unit === 'km' ? t('settings.unitKilometres') : t('settings.unitMiles');
         return (
           <Pressable
             key={unit}

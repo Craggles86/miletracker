@@ -1,4 +1,5 @@
 import type { Trip, Settings } from '@/store/types';
+import { t } from '@/i18n/useTranslation';
 
 // Build the CSV string for export
 export function generateCSV(
@@ -18,24 +19,38 @@ export function generateCSV(
   const startOdo = settings.startingOdometer ?? 0;
   const endOdo = startOdo + totalDistance;
   const unitLabel = settings.distanceUnit === 'miles' ? 'mi' : 'km';
+  const notSet = t('common.notSet');
 
   const lines: string[] = [];
 
   // Header section
-  lines.push('MileageTrack — Mileage Log Export');
-  lines.push(`Name,${csvEscape(settings.userName || 'Not set')}`);
-  lines.push(`Vehicle,${csvEscape([settings.vehicleMake, settings.vehicleModel].filter(Boolean).join(' ') || 'Not set')}`);
-  lines.push(`Year,${csvEscape(settings.vehicleYear || 'Not set')}`);
-  lines.push(`Registration,${csvEscape(settings.vehicleRegistration || 'Not set')}`);
-  lines.push(`Starting Odometer (${unitLabel}),${startOdo.toFixed(1)}`);
-  lines.push(`Ending Odometer (${unitLabel}),${endOdo.toFixed(1)}`);
-  lines.push(`Business Mileage %,${businessPct}%`);
-  lines.push(`Total Distance (${unitLabel}),${convert(totalDistance, settings.distanceUnit)}`);
-  lines.push(`Business Distance (${unitLabel}),${convert(businessDistance, settings.distanceUnit)}`);
+  lines.push(t('csv.headerTitle'));
+  lines.push(`${t('csv.name')},${csvEscape(settings.userName || notSet)}`);
+  lines.push(`${t('csv.vehicle')},${csvEscape([settings.vehicleMake, settings.vehicleModel].filter(Boolean).join(' ') || notSet)}`);
+  lines.push(`${t('csv.year')},${csvEscape(settings.vehicleYear || notSet)}`);
+  lines.push(`${t('csv.registration')},${csvEscape(settings.vehicleRegistration || notSet)}`);
+  lines.push(`${t('csv.startingOdometer')} (${unitLabel}),${startOdo.toFixed(1)}`);
+  lines.push(`${t('csv.endingOdometer')} (${unitLabel}),${endOdo.toFixed(1)}`);
+  lines.push(`${t('csv.businessPct')},${businessPct}%`);
+  lines.push(`${t('csv.totalDistance')} (${unitLabel}),${convert(totalDistance, settings.distanceUnit)}`);
+  lines.push(`${t('csv.businessDistance')} (${unitLabel}),${convert(businessDistance, settings.distanceUnit)}`);
   lines.push('');
 
   // Column headers
-  lines.push('Date,Time,Start Odometer,Start Suburb,End Suburb,End Odometer,Distance,Classification');
+  lines.push(
+    [
+      t('csv.colDate'),
+      t('csv.colTime'),
+      t('csv.colStartOdo'),
+      t('csv.colStartSuburb'),
+      t('csv.colEndSuburb'),
+      t('csv.colEndOdo'),
+      t('csv.colDistance'),
+      t('csv.colClassification'),
+    ]
+      .map(csvEscape)
+      .join(',')
+  );
 
   // Trip rows
   let runningOdo = startOdo;
@@ -55,7 +70,7 @@ export function generateCSV(
       csvEscape(trip.endSuburb),
       runningOdo.toFixed(1),
       tripDist.toFixed(1),
-      trip.purpose,
+      csvEscape(trip.purpose === 'Business' ? t('trips.business') : t('trips.personal')),
     ].join(','));
   }
 
@@ -103,7 +118,7 @@ export async function exportCSV(csvContent: string): Promise<void> {
     if (isAvailable) {
       await sharingModule.shareAsync(fileUri, {
         mimeType: 'text/csv',
-        dialogTitle: 'Export MileageTrack Data',
+        dialogTitle: t('csv.exportDialogTitle'),
         UTI: 'public.comma-separated-values-text',
       });
     }

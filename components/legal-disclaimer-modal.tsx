@@ -4,6 +4,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { Colors } from '@/constants/Colors';
 import { Fonts } from '@/constants/Typography';
 import { DISCLAIMER_SECTIONS } from '@/constants/disclaimer-sections';
+import { useTranslation } from '@/i18n/useTranslation';
 
 interface LegalDisclaimerModalProps {
   visible: boolean;
@@ -12,6 +13,7 @@ interface LegalDisclaimerModalProps {
 
 export function LegalDisclaimerModal({ visible, onClose }: LegalDisclaimerModalProps) {
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
 
   return (
     <Modal
@@ -48,7 +50,7 @@ export function LegalDisclaimerModal({ visible, onClose }: LegalDisclaimerModalP
                 color: Colors.textPrimary,
               }}
             >
-              Legal Disclaimer
+              {t('disclaimer.title')}
             </Text>
             <Text
               style={{
@@ -58,7 +60,7 @@ export function LegalDisclaimerModal({ visible, onClose }: LegalDisclaimerModalP
                 marginTop: 2,
               }}
             >
-              Please read carefully before using the app
+              {t('disclaimer.subtitleModal')}
             </Text>
           </View>
           <Pressable
@@ -107,7 +109,7 @@ export function LegalDisclaimerModal({ visible, onClose }: LegalDisclaimerModalP
                 lineHeight: 20,
               }}
             >
-              By using MileageTrack, you acknowledge that you have read, understood, and agree to be bound by the following terms and conditions. If you do not agree with any part of this disclaimer, please discontinue use of the app immediately.
+              {t('disclaimer.preamble')}
             </Text>
           </View>
 
@@ -158,7 +160,7 @@ export function LegalDisclaimerModal({ visible, onClose }: LegalDisclaimerModalP
                 textAlign: 'center',
               }}
             >
-              This disclaimer was last updated on April 20, 2026. The developer reserves the right to update or modify this disclaimer at any time without prior notice.
+              {t('disclaimer.footerNote')}
             </Text>
           </View>
 
@@ -182,7 +184,7 @@ export function LegalDisclaimerModal({ visible, onClose }: LegalDisclaimerModalP
                 color: '#fff',
               }}
             >
-              Close
+              {t('common.close')}
             </Text>
           </Pressable>
         </ScrollView>

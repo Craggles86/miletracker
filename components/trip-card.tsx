@@ -11,7 +11,8 @@ import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Colors } from '@/constants/Colors';
 import { Fonts } from '@/constants/Typography';
-import { formatDistance, formatDuration, formatTripDate } from '@/utils/helpers';
+import { formatDistance, formatDuration, formatTripDateLocale } from '@/utils/helpers';
+import { useTranslation } from '@/i18n/useTranslation';
 import type { Trip } from '@/store/types';
 
 interface TripCardProps {
@@ -23,6 +24,7 @@ interface TripCardProps {
 }
 
 export function TripCard({ trip, unit, index, onPress, onDelete }: TripCardProps) {
+  const { t, locale } = useTranslation();
   const translateX = useSharedValue(0);
   const deleteWidth = 80;
 
@@ -52,7 +54,9 @@ export function TripCard({ trip, unit, index, onPress, onDelete }: TripCardProps
 
   const isBusiness = trip.purpose === 'Business';
   const badgeColor = isBusiness ? Colors.businessBadge : Colors.personalBadge;
-  const routeLabel = `${trip.startSuburb || 'Unknown'} → ${trip.endSuburb || 'Unknown'}`;
+  const purposeLabel = isBusiness ? t('trips.business') : t('trips.personal');
+  const unknown = t('common.unknown');
+  const routeLabel = `${trip.startSuburb || unknown} → ${trip.endSuburb || unknown}`;
 
   return (
     <Animated.View
@@ -86,7 +90,7 @@ export function TripCard({ trip, unit, index, onPress, onDelete }: TripCardProps
         >
           <Ionicons name="trash" size={22} color="#fff" />
           <Text style={{ fontFamily: Fonts.semiBold, fontSize: 12, color: '#fff' }}>
-            Delete
+            {t('common.delete')}
           </Text>
         </Pressable>
       </Animated.View>
@@ -122,7 +126,7 @@ export function TripCard({ trip, unit, index, onPress, onDelete }: TripCardProps
                   color: Colors.textSecondary,
                 }}
               >
-                {formatTripDate(trip.startTime)}
+                {formatTripDateLocale(trip.startTime, locale)}
               </Text>
               <View
                 style={{
@@ -136,7 +140,7 @@ export function TripCard({ trip, unit, index, onPress, onDelete }: TripCardProps
                 <Text
                   style={{ fontFamily: Fonts.semiBold, fontSize: 11, color: '#fff' }}
                 >
-                  {trip.purpose}
+                  {purposeLabel}
                 </Text>
               </View>
             </View>

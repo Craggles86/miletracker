@@ -24,6 +24,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { LatLng, Trip } from '@/store/types';
 import { useAppStore } from '@/store/useAppStore';
 import { getWeekId, isWithinBusinessHours } from '@/utils/helpers';
+import { t } from '@/i18n/useTranslation';
 
 // ────────────────────────────────────────────────────────────────────────────
 // Constants
@@ -172,7 +173,7 @@ async function ensurePersistentChannel(): Promise<void> {
   if (!Notifications) return;
   try {
     await Notifications.setNotificationChannelAsync(PERSISTENT_CHANNEL_ID, {
-      name: 'Trip monitoring',
+      name: t('notifications.persistentChannelName'),
       importance: Notifications.AndroidImportance.LOW,
       vibrationPattern: [0],
       sound: null,
@@ -195,8 +196,8 @@ async function showPersistentNotification(): Promise<void> {
     await Notifications.scheduleNotificationAsync({
       identifier: PERSISTENT_NOTIFICATION_ID,
       content: {
-        title: 'MileageTrack is monitoring your location',
-        body: 'Automatic trip detection is running. Tap to open the app.',
+        title: t('notifications.persistentTitle'),
+        body: t('notifications.persistentBody'),
         sticky: true,
         autoDismiss: false,
         ...(Platform.OS === 'android'
@@ -391,8 +392,8 @@ function handleLocationUpdate(
         stationaryAnchor: null,
       };
       fireNotification(
-        'Trip started',
-        'MileageTrack is logging your journey automatically.'
+        t('notifications.tripStartedTitle'),
+        t('notifications.autoTripStartBody')
       ).catch(() => {});
     }
     return;
@@ -451,8 +452,8 @@ function handleLocationUpdate(
         finaliseTrip(toFinalise, endTs)
           .then(() =>
             fireNotification(
-              'Trip ended',
-              'Your trip was saved. Open MileageTrack to review it.'
+              t('notifications.tripEndedTitle'),
+              t('notifications.autoTripEndBody')
             )
           )
           .catch((err) => console.warn('[bgTracking] finalise failed', err));
@@ -582,8 +583,8 @@ export async function disableBackgroundTracking(): Promise<void> {
     try {
       await finaliseTrip(toFinalise, Date.now());
       await fireNotification(
-        'Trip ended',
-        'Background tracking was stopped. Trip saved.'
+        t('notifications.tripEndedTitle'),
+        t('notifications.stoppedTripEndBody')
       );
     } catch (err) {
       console.warn('[bgTracking] finalise on disable failed', err);

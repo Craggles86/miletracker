@@ -9,10 +9,12 @@ import { useAppStore } from '@/store/useAppStore';
 import { TripCard } from '@/components/trip-card';
 import { PurposeFilter, type FilterOption } from '@/components/purpose-filter';
 import { formatDistanceValue, getUnitLabel } from '@/utils/helpers';
+import { useTranslation } from '@/i18n/useTranslation';
 
 export default function TripsScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { t } = useTranslation();
   const trips = useAppStore((s) => s.trips);
   const deleteTrip = useAppStore((s) => s.deleteTrip);
   const settings = useAppStore((s) => s.settings);
@@ -55,7 +57,7 @@ export default function TripsScreen() {
               textAlign: 'center',
             }}
           >
-            Trips History
+            {t('trips.title')}
           </Text>
         </Animated.View>
 
@@ -83,7 +85,7 @@ export default function TripsScreen() {
               letterSpacing: 0.8,
             }}
           >
-            Total Mileage
+            {t('trips.totalMileage')}
           </Text>
           <Text
             selectable
@@ -131,7 +133,7 @@ export default function TripsScreen() {
                 color: Colors.textPrimary,
               }}
             >
-              No trips yet
+              {t('trips.emptyTitle')}
             </Text>
             <Text
               style={{
@@ -142,8 +144,7 @@ export default function TripsScreen() {
                 maxWidth: 260,
               }}
             >
-              Trips will appear here once your device detects movement above 10
-              km/h.
+              {t('trips.emptyMessage')}
             </Text>
           </Animated.View>
         ) : (

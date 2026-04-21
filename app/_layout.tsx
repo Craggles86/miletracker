@@ -11,6 +11,18 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Colors } from '@/constants/Colors';
 import { DisclaimerGate } from '@/components/disclaimer-gate';
 import { ErrorBoundary } from '@/components/error-boundary';
+import { initialiseI18n, getDeviceRegionCode, getDefaultDistanceUnitForRegion } from '@/i18n';
+import { notifyLocaleChange } from '@/i18n/useTranslation';
+import { useAppStore } from '@/store/useAppStore';
+
+// Detect locale as early as possible (before first render) so every string is
+// localised on first paint. Failures are swallowed so they can never crash.
+try {
+  initialiseI18n();
+  notifyLocaleChange();
+} catch {
+  // ignore — defaults remain English
+}
 
 // Prevent the splash screen auto-hiding before fonts load. Guarded because
 // preventAutoHideAsync can throw after fast refresh or if splash is already
@@ -40,6 +52,27 @@ export default function RootLayout() {
   useEffect(() => {
     if (loaded || error) {
       SplashScreen.hideAsync().catch(() => {});
+    }
+  }, [loaded, error]);
+
+  // On first launch (when the user hasn't manually set a unit preference), pick
+  // a sensible default distance unit based on the device's region. US/UK/MM use
+  // miles; everywhere else uses kilometres. We only do this once by watching
+  // the `distanceUnitAutoDetected` flag in persisted state.
+  useEffect(() => {
+    if (!loaded && !error) return;
+    try {
+      const state = useAppStore.getState();
+      if (!state.settings.distanceUnitAutoDetected) {
+        const region = getDeviceRegionCode();
+        const defaultUnit = getDefaultDistanceUnitForRegion(region);
+        state.updateSettings({
+          distanceUnit: defaultUnit,
+          distanceUnitAutoDetected: true,
+        });
+      }
+    } catch (err) {
+      console.warn('[RootLayout] distance unit auto-detect failed', err);
     }
   }, [loaded, error]);
 

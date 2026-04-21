@@ -2,6 +2,7 @@ import { Component, type ErrorInfo, type ReactNode } from 'react';
 import { View, Text, ScrollView, Pressable } from 'react-native';
 import { Colors } from '@/constants/Colors';
 import { Fonts } from '@/constants/Typography';
+import { t } from '@/i18n/useTranslation';
 
 interface Props {
   children: ReactNode;
@@ -41,7 +42,7 @@ export class ErrorBoundary extends Component<Props, State> {
       return this.props.children;
     }
 
-    const message = this.state.error?.message || 'An unexpected error occurred';
+    const message = this.state.error?.message || t('errorBoundary.defaultMessage');
 
     return (
       <View
@@ -61,7 +62,7 @@ export class ErrorBoundary extends Component<Props, State> {
               textAlign: 'center',
             }}
           >
-            Something went wrong
+            {t('errorBoundary.title')}
           </Text>
           <Text
             selectable
@@ -93,7 +94,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 color: '#fff',
               }}
             >
-              Try again
+              {t('common.tryAgain')}
             </Text>
           </Pressable>
         </ScrollView>

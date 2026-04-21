@@ -7,6 +7,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { Colors } from '@/constants/Colors';
 import { Fonts } from '@/constants/Typography';
 import { DISCLAIMER_SECTIONS } from '@/constants/disclaimer-sections';
+import { useTranslation } from '@/i18n/useTranslation';
 
 const STORAGE_KEY = 'mileagetrack-disclaimer-accepted';
 
@@ -18,6 +19,7 @@ export function DisclaimerGate({ children }: DisclaimerGateProps) {
   const [status, setStatus] = useState<'loading' | 'required' | 'accepted'>('loading');
   const [agreed, setAgreed] = useState(false);
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
 
   useEffect(() => {
     AsyncStorage.getItem(STORAGE_KEY)
@@ -97,7 +99,7 @@ export function DisclaimerGate({ children }: DisclaimerGateProps) {
               color: Colors.textPrimary,
             }}
           >
-            Legal Disclaimer
+            {t('disclaimer.title')}
           </Text>
         </View>
         <Text
@@ -108,7 +110,7 @@ export function DisclaimerGate({ children }: DisclaimerGateProps) {
             lineHeight: 18,
           }}
         >
-          Please review and accept before continuing
+          {t('disclaimer.subtitleGate')}
         </Text>
       </Animated.View>
 
@@ -142,7 +144,7 @@ export function DisclaimerGate({ children }: DisclaimerGateProps) {
               lineHeight: 20,
             }}
           >
-            By using MileageTrack, you acknowledge that you have read, understood, and agree to be bound by the following terms and conditions. If you do not agree with any part of this disclaimer, please discontinue use of the app immediately.
+            {t('disclaimer.preamble')}
           </Text>
         </Animated.View>
 
@@ -193,7 +195,7 @@ export function DisclaimerGate({ children }: DisclaimerGateProps) {
               textAlign: 'center',
             }}
           >
-            This disclaimer was last updated on April 20, 2026. The developer reserves the right to update or modify this disclaimer at any time without prior notice.
+            {t('disclaimer.footerNote')}
           </Text>
         </View>
       </ScrollView>
@@ -247,7 +249,7 @@ export function DisclaimerGate({ children }: DisclaimerGateProps) {
               lineHeight: 20,
             }}
           >
-            I have read and agree to the terms and disclaimer above
+            {t('disclaimer.agree')}
           </Text>
         </Pressable>
 
@@ -271,7 +273,7 @@ export function DisclaimerGate({ children }: DisclaimerGateProps) {
               color: agreed ? '#fff' : Colors.textSecondary,
             }}
           >
-            Accept & Continue
+            {t('disclaimer.accept')}
           </Text>
         </Pressable>
       </Animated.View>

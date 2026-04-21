@@ -23,11 +23,13 @@ import {
   getUnitLabel,
   formatDistance,
   formatDuration,
-  formatTripDate,
+  formatTripDateLocale,
 } from '@/utils/helpers';
+import { useTranslation } from '@/i18n/useTranslation';
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
+  const { t, locale } = useTranslation();
   const trips = useAppStore((s) => s.trips);
   const settings = useAppStore((s) => s.settings);
   const { isTracking, startTrip, stopTrip, starting, stopping } =
@@ -101,12 +103,11 @@ export default function HomeScreen() {
   const handleStart = async () => {
     const ok = await startTrip();
     if (!ok) {
-      const msg =
-        'Location permission is required to track your trip. Please enable it in your device settings.';
+      const msg = t('home.unableToStartMessage');
       if (Platform.OS === 'web') {
         if (typeof window !== 'undefined') window.alert(msg);
       } else {
-        Alert.alert('Unable to start trip', msg);
+        Alert.alert(t('home.unableToStartTitle'), msg);
       }
     }
   };
@@ -128,8 +129,8 @@ export default function HomeScreen() {
       {/* Notification banner when tracking */}
       <NotificationBanner
         visible={isTracking}
-        title="Trip in progress"
-        message="MileageTrack is logging your journey while the app is open"
+        title={t('home.bannerTripTitle')}
+        message={t('home.bannerTripMessage')}
       />
 
       {/* Header */}
@@ -164,7 +165,7 @@ export default function HomeScreen() {
               color: Colors.textPrimary,
             }}
           >
-            MileageTrack
+            {t('home.appName')}
           </Text>
         </View>
         <View
@@ -196,7 +197,7 @@ export default function HomeScreen() {
               color: isTracking ? Colors.accent : Colors.textSecondary,
             }}
           >
-            {isTracking ? 'Tracking' : 'Idle'}
+            {isTracking ? t('home.statusTracking') : t('home.statusIdle')}
           </Text>
         </View>
       </Animated.View>
@@ -243,7 +244,7 @@ export default function HomeScreen() {
                 color: '#fff',
               }}
             >
-              {starting ? 'Starting…' : 'Start Trip'}
+              {starting ? t('home.starting') : t('home.startTrip')}
             </Text>
           </Pressable>
         ) : (
@@ -272,7 +273,7 @@ export default function HomeScreen() {
                 color: '#fff',
               }}
             >
-              {stopping ? 'Stopping…' : 'Stop Trip'}
+              {stopping ? t('home.stopping') : t('home.stopTrip')}
             </Text>
           </Pressable>
         )}
@@ -285,7 +286,7 @@ export default function HomeScreen() {
             marginTop: 8,
           }}
         >
-          Keep the app open while driving to record your trip.
+          {t('home.keepAppOpen')}
         </Text>
       </Animated.View>
 
@@ -303,7 +304,7 @@ export default function HomeScreen() {
             fontVariant: ['tabular-nums'],
           }}
         >
-          This Week:{' '}
+          {t('home.thisWeek')}:{' '}
           <Text style={{ color: Colors.textPrimary, fontFamily: Fonts.semiBold }}>
             {formatDistanceValue(weekTotal, unit)} {getUnitLabel(unit)}
           </Text>
@@ -334,7 +335,7 @@ export default function HomeScreen() {
               marginBottom: 8,
             }}
           >
-            Last Trip
+            {t('home.lastTrip')}
           </Text>
           <Text
             selectable
@@ -377,7 +378,7 @@ export default function HomeScreen() {
                 color: Colors.textSecondary,
               }}
             >
-              {formatTripDate(lastTrip.startTime)}
+              {formatTripDateLocale(lastTrip.startTime, locale)}
             </Text>
           </View>
         </Animated.View>
@@ -386,13 +387,13 @@ export default function HomeScreen() {
       {/* Week / Month stats */}
       <View style={{ flexDirection: 'row', gap: 12, marginBottom: 16 }}>
         <StatCard
-          label="This Week"
+          label={t('home.thisWeek')}
           value={formatDistanceValue(weekTotal, unit)}
           unit={getUnitLabel(unit)}
           index={0}
         />
         <StatCard
-          label="This Month"
+          label={t('home.thisMonth')}
           value={formatDistanceValue(monthTotal, unit)}
           unit={getUnitLabel(unit)}
           index={1}

@@ -1,6 +1,7 @@
 import { View, Text, Pressable } from 'react-native';
 import { Colors } from '@/constants/Colors';
 import { Fonts } from '@/constants/Typography';
+import { useTranslation } from '@/i18n/useTranslation';
 import type { TripPurpose } from '@/store/types';
 
 type FilterOption = 'All' | TripPurpose;
@@ -11,7 +12,14 @@ interface PurposeFilterProps {
 }
 
 export function PurposeFilter({ selected, onChange }: PurposeFilterProps) {
+  const { t } = useTranslation();
   const options: FilterOption[] = ['All', 'Business', 'Personal'];
+
+  const labelFor = (opt: FilterOption) => {
+    if (opt === 'All') return t('trips.filterAll');
+    if (opt === 'Business') return t('trips.filterBusiness');
+    return t('trips.filterPersonal');
+  };
 
   return (
     <View
@@ -45,7 +53,7 @@ export function PurposeFilter({ selected, onChange }: PurposeFilterProps) {
                 color: isSelected ? '#fff' : Colors.textSecondary,
               }}
             >
-              {option}
+              {labelFor(option)}
             </Text>
           </Pressable>
         );

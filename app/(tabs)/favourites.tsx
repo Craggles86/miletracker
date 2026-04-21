@@ -7,14 +7,24 @@ import { Colors } from '@/constants/Colors';
 import { Fonts } from '@/constants/Typography';
 import { useAppStore } from '@/store/useAppStore';
 import { FavouriteCard } from '@/components/favourite-card';
+import { useTranslation } from '@/i18n/useTranslation';
 
-const LABEL_OPTIONS = ['Home', 'Work', 'Custom'];
+// Stable identifiers for the three label options — the displayed text is
+// translated from these identifiers via i18n.
+const LABEL_OPTIONS = ['Home', 'Work', 'Custom'] as const;
 
 export default function FavouritesScreen() {
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
   const favourites = useAppStore((s) => s.favourites);
   const addFavourite = useAppStore((s) => s.addFavourite);
   const deleteFavourite = useAppStore((s) => s.deleteFavourite);
+
+  const labelText = (opt: string) => {
+    if (opt === 'Home') return t('favourites.labelHome');
+    if (opt === 'Work') return t('favourites.labelWork');
+    return t('favourites.labelCustom');
+  };
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [newLabel, setNewLabel] = useState('Home');
@@ -30,7 +40,12 @@ export default function FavouritesScreen() {
   };
 
   const handleAdd = () => {
-    const label = newLabel === 'Custom' ? customLabel.trim() || 'Custom' : newLabel;
+    const label =
+      newLabel === 'Custom'
+        ? customLabel.trim() || t('favourites.labelCustom')
+        : newLabel === 'Home'
+        ? t('favourites.labelHome')
+        : t('favourites.labelWork');
     if (!newSuburb.trim()) return;
 
     addFavourite({
@@ -72,7 +87,7 @@ export default function FavouritesScreen() {
               color: Colors.textPrimary,
             }}
           >
-            Favourites
+            {t('favourites.title')}
           </Text>
           <Pressable
             onPress={() => setShowAddModal(true)}
@@ -116,7 +131,7 @@ export default function FavouritesScreen() {
                 color: Colors.textPrimary,
               }}
             >
-              No favourites saved
+              {t('favourites.emptyTitle')}
             </Text>
             <Text
               style={{
@@ -127,8 +142,7 @@ export default function FavouritesScreen() {
                 maxWidth: 280,
               }}
             >
-              Add your frequently visited locations like Home and Work to
-              automatically label trip start and end points.
+              {t('favourites.emptyMessage')}
             </Text>
           </Animated.View>
         )}
@@ -200,7 +214,7 @@ export default function FavouritesScreen() {
                     color: Colors.textPrimary,
                   }}
                 >
-                  Add Favourite
+                  {t('favourites.addTitle')}
                 </Text>
                 <Pressable onPress={() => setShowAddModal(false)} hitSlop={12}>
                   <Ionicons
@@ -220,7 +234,7 @@ export default function FavouritesScreen() {
                     color: Colors.textPrimary,
                   }}
                 >
-                  Label
+                  {t('favourites.label')}
                 </Text>
                 <View
                   style={{
@@ -257,7 +271,7 @@ export default function FavouritesScreen() {
                             color: isSelected ? '#fff' : Colors.textSecondary,
                           }}
                         >
-                          {opt}
+                          {labelText(opt)}
                         </Text>
                       </Pressable>
                     );
@@ -267,7 +281,7 @@ export default function FavouritesScreen() {
                   <TextInput
                     value={customLabel}
                     onChangeText={setCustomLabel}
-                    placeholder="Custom label"
+                    placeholder={t('favourites.customLabelPlaceholder')}
                     placeholderTextColor={Colors.textSecondary}
                     style={{
                       backgroundColor: Colors.surface,
@@ -292,12 +306,12 @@ export default function FavouritesScreen() {
                     color: Colors.textPrimary,
                   }}
                 >
-                  Address
+                  {t('favourites.address')}
                 </Text>
                 <TextInput
                   value={newAddress}
                   onChangeText={setNewAddress}
-                  placeholder="Street address (optional)"
+                  placeholder={t('favourites.addressPlaceholder')}
                   placeholderTextColor={Colors.textSecondary}
                   style={{
                     backgroundColor: Colors.surface,
@@ -321,12 +335,12 @@ export default function FavouritesScreen() {
                     color: Colors.textPrimary,
                   }}
                 >
-                  Suburb
+                  {t('favourites.suburb')}
                 </Text>
                 <TextInput
                   value={newSuburb}
                   onChangeText={setNewSuburb}
-                  placeholder="e.g. Surry Hills"
+                  placeholder={t('favourites.suburbPlaceholder')}
                   placeholderTextColor={Colors.textSecondary}
                   style={{
                     backgroundColor: Colors.surface,
@@ -362,7 +376,7 @@ export default function FavouritesScreen() {
                     color: newSuburb.trim() ? '#fff' : Colors.textSecondary,
                   }}
                 >
-                  Save Favourite
+                  {t('favourites.saveFavourite')}
                 </Text>
               </Pressable>
             </View>
