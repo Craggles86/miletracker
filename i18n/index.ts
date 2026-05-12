@@ -1,5 +1,4 @@
 import { I18n } from 'i18n-js';
-import * as Localization from 'expo-localization';
 import { en } from './locales/en';
 import { de } from './locales/de';
 import { fr } from './locales/fr';
@@ -30,6 +29,17 @@ import { hu } from './locales/hu';
 import { ro } from './locales/ro';
 import { uk } from './locales/uk';
 import { he } from './locales/he';
+
+// expo-localization is imported lazily to prevent a native module crash on
+// Android if the module isn't ready when JS evaluates. The `getLocales()` call
+// is synchronous but depends on the native module being initialised first.
+let Localization: typeof import('expo-localization') | null = null;
+try {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  Localization = require('expo-localization');
+} catch (err) {
+  console.warn('[i18n] expo-localization import failed:', err);
+}
 
 export const translations = {
   en,
@@ -106,10 +116,12 @@ export function resolveLocale(deviceLocale: string | null | undefined): string {
 export function initialiseI18n(): string {
   let deviceLocale: string | null = null;
   try {
-    const locales = Localization.getLocales();
-    if (Array.isArray(locales) && locales.length > 0) {
-      const first = locales[0];
-      deviceLocale = first.languageTag || first.languageCode || null;
+    if (Localization) {
+      const locales = Localization.getLocales();
+      if (Array.isArray(locales) && locales.length > 0) {
+        const first = locales[0];
+        deviceLocale = first.languageTag || first.languageCode || null;
+      }
     }
   } catch (err) {
     console.warn('[i18n] failed to read device locale', err);
@@ -126,6 +138,7 @@ export function initialiseI18n(): string {
  */
 export function getDeviceRegionCode(): string | null {
   try {
+    if (!Localization) return null;
     const locales = Localization.getLocales();
     if (Array.isArray(locales) && locales.length > 0) {
       return (locales[0].regionCode || '').toUpperCase() || null;

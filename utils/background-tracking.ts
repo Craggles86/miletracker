@@ -167,24 +167,25 @@ async function fireNotification(title: string, body: string): Promise<void> {
 // Persistent foreground-service notification
 // ────────────────────────────────────────────────────────────────────────────
 
-async function ensurePersistentChannel(): Promise<void> {
-  if (Platform.OS !== 'android') return;
+async function ensurePersistentChannel(): Promise<boolean> {
+  if (Platform.OS !== 'android') return true;
   const Notifications = await loadNotifications();
-  if (!Notifications) return;
+  if (!Notifications) return false;
   try {
     await Notifications.setNotificationChannelAsync(PERSISTENT_CHANNEL_ID, {
       name: t('notifications.persistentChannelName'),
       importance: Notifications.AndroidImportance.LOW,
-      vibrationPattern: [0],
-      sound: null,
       lightColor: '#4F46E5',
       lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
       showBadge: false,
       enableVibrate: false,
       bypassDnd: false,
     });
+    console.log('[bgTracking] persistent notification channel created');
+    return true;
   } catch (err) {
     console.warn('[bgTracking] failed to create persistent channel', err);
+    return false;
   }
 }
 
@@ -193,6 +194,10 @@ async function showPersistentNotification(): Promise<void> {
   if (!Notifications) return;
   await ensurePersistentChannel();
   try {
+    // On Android, pass `null` as the trigger to fire immediately. The channel
+    // is specified inside `content` (via `channelId`) which is the recommended
+    // approach. Passing `{ channelId: '...' }` as the trigger alone can throw
+    // a native exception on some expo-notifications versions.
     await Notifications.scheduleNotificationAsync({
       identifier: PERSISTENT_NOTIFICATION_ID,
       content: {
@@ -201,14 +206,17 @@ async function showPersistentNotification(): Promise<void> {
         sticky: true,
         autoDismiss: false,
         ...(Platform.OS === 'android'
-          ? { color: '#4F46E5', priority: 'low' as const }
+          ? {
+              color: '#4F46E5',
+              priority: 'low' as const,
+              // Bind to our low-importance channel on Android
+              channelId: PERSISTENT_CHANNEL_ID,
+            }
           : {}),
       },
-      trigger:
-        Platform.OS === 'android'
-          ? { channelId: PERSISTENT_CHANNEL_ID }
-          : null,
+      trigger: null,
     });
+    console.log('[bgTracking] persistent notification shown');
   } catch (err) {
     console.warn('[bgTracking] failed to show persistent notification', err);
   }
@@ -486,30 +494,43 @@ export async function enableBackgroundTracking(): Promise<{
   ok: boolean;
   reason?: 'unsupported' | 'permission' | 'error';
 }> {
+  console.log('[bgTracking] enableBackgroundTracking called');
   if (Platform.OS === 'web') return { ok: false, reason: 'unsupported' };
-  if (starting) return { ok: true };
-  if (watchSubscription) return { ok: true };
+  if (starting) {
+    console.log('[bgTracking] already starting, skip');
+    return { ok: true };
+  }
+  if (watchSubscription) {
+    console.log('[bgTracking] already active, skip');
+    return { ok: true };
+  }
   starting = true;
 
   try {
+    console.log('[bgTracking] loading location module');
     const Location = await loadLocation();
     if (!Location) return { ok: false, reason: 'unsupported' };
 
+    console.log('[bgTracking] requesting permissions');
     const perms = await requestBackgroundPermissions();
     if (perms.foreground !== 'granted') {
+      console.log('[bgTracking] foreground permission denied');
       return { ok: false, reason: 'permission' };
     }
     // Background permission is strongly recommended but we can still track
     // while foregrounded with a persistent notification.
     if (perms.background !== 'granted') {
+      console.log('[bgTracking] background permission denied');
       return { ok: false, reason: 'permission' };
     }
 
     // Show the sticky notification FIRST — on Android this is what promotes
     // the app to a foreground service and keeps GPS alive in the background.
+    console.log('[bgTracking] showing persistent notification');
     await showPersistentNotification();
 
     try {
+      console.log('[bgTracking] starting watchPositionAsync');
       const sub = await Location.watchPositionAsync(
         {
           accuracy: Location.Accuracy.BestForNavigation,
@@ -542,6 +563,7 @@ export async function enableBackgroundTracking(): Promise<{
         }
       );
       watchSubscription = sub;
+      console.log('[bgTracking] watchPositionAsync started successfully');
     } catch (err) {
       console.warn('[bgTracking] watchPositionAsync failed', err);
       await hidePersistentNotification();
@@ -553,6 +575,7 @@ export async function enableBackgroundTracking(): Promise<{
     } catch {
       // ignore
     }
+    console.log('[bgTracking] background tracking enabled successfully');
     return { ok: true };
   } finally {
     starting = false;

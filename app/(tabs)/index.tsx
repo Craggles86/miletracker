@@ -70,21 +70,32 @@ export default function HomeScreen() {
     if (bootstrapRef.current) return;
     bootstrapRef.current = true;
 
+    console.log('[HomeScreen] scheduling background service bootstrap');
     const handle = InteractionManager.runAfterInteractions(() => {
       (async () => {
         try {
+          console.log('[HomeScreen] background bootstrap starting');
           const mod = await import('@/utils/background-tracking');
-          if (mod.isBackgroundTrackingActive()) return;
-
-          const wasEnabled = await mod.wasBackgroundTrackingEnabled();
-          if (!wasEnabled) return;
-
-          const perms = await mod.checkBackgroundPermissions();
-          if (perms.foreground !== 'granted' || perms.background !== 'granted') {
-            // User revoked permissions — don't auto-restart silently.
+          if (mod.isBackgroundTrackingActive()) {
+            console.log('[HomeScreen] background tracking already active');
             return;
           }
-          await mod.enableBackgroundTracking();
+
+          const wasEnabled = await mod.wasBackgroundTrackingEnabled();
+          if (!wasEnabled) {
+            console.log('[HomeScreen] background tracking was not previously enabled');
+            return;
+          }
+
+          console.log('[HomeScreen] checking background permissions');
+          const perms = await mod.checkBackgroundPermissions();
+          if (perms.foreground !== 'granted' || perms.background !== 'granted') {
+            console.log('[HomeScreen] permissions revoked, not auto-restarting');
+            return;
+          }
+          console.log('[HomeScreen] re-enabling background tracking');
+          const result = await mod.enableBackgroundTracking();
+          console.log('[HomeScreen] background tracking result:', result);
         } catch (err) {
           console.warn('[HomeScreen] background bootstrap failed', err);
         }

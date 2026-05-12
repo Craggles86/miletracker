@@ -67,7 +67,8 @@
           "locationWhenInUsePermission": "MileageTrack uses your location to log your trips while the app is open.",
           "locationAlwaysAndWhenInUsePermission": "MileageTrack uses your location in the background to automatically detect and log your trips.",
           "locationAlwaysPermission": "MileageTrack uses your location in the background to automatically detect and log your trips.",
-          "isAndroidBackgroundLocationEnabled": true
+          "isAndroidBackgroundLocationEnabled": true,
+          "isAndroidForegroundServiceEnabled": true
         }
       ],
       [

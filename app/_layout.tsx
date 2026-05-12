@@ -4,7 +4,7 @@ import { useFonts } from 'expo-font';
 import { FontMap } from '@/constants/Typography';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
-import { InteractionManager } from 'react-native';
+import { InteractionManager, Platform } from 'react-native';
 import { ThemeProvider, DarkTheme } from '@react-navigation/native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -15,13 +15,16 @@ import { initialiseI18n, getDeviceRegionCode, getDefaultDistanceUnitForRegion } 
 import { notifyLocaleChange } from '@/i18n/useTranslation';
 import { useAppStore } from '@/store/useAppStore';
 
+console.log('[RootLayout] module loading');
+
 // Detect locale as early as possible (before first render) so every string is
 // localised on first paint. Failures are swallowed so they can never crash.
 try {
   initialiseI18n();
   notifyLocaleChange();
-} catch {
-  // ignore — defaults remain English
+  console.log('[RootLayout] i18n initialised');
+} catch (err) {
+  console.warn('[RootLayout] i18n init failed (using English)', err);
 }
 
 // Prevent the splash screen auto-hiding before fonts load. Guarded because
@@ -29,6 +32,7 @@ try {
 // dismissed — a throw here would crash the app before any UI mounts.
 try {
   SplashScreen.preventAutoHideAsync();
+  console.log('[RootLayout] splash screen held');
 } catch {
   // ignore
 }
@@ -47,9 +51,16 @@ const appTheme = {
 };
 
 export default function RootLayout() {
+  console.log('[RootLayout] render start');
   const [loaded, error] = useFonts(FontMap);
 
   useEffect(() => {
+    if (loaded) {
+      console.log('[RootLayout] fonts loaded successfully');
+    }
+    if (error) {
+      console.warn('[RootLayout] font loading error:', error);
+    }
     if (loaded || error) {
       SplashScreen.hideAsync().catch(() => {});
     }
@@ -70,6 +81,7 @@ export default function RootLayout() {
           distanceUnit: defaultUnit,
           distanceUnitAutoDetected: true,
         });
+        console.log('[RootLayout] distance unit set to', defaultUnit, 'for region', region);
       }
     } catch (err) {
       console.warn('[RootLayout] distance unit auto-detect failed', err);
@@ -81,14 +93,18 @@ export default function RootLayout() {
   // failure in an optional native module can't crash the app on launch.
   useEffect(() => {
     if (!loaded && !error) return;
+    // Skip notifications setup entirely on web
+    if (Platform.OS === 'web') return;
 
     const handle = InteractionManager.runAfterInteractions(() => {
       (async () => {
         try {
+          console.log('[RootLayout] configuring notifications (deferred)');
           const { configureNotifications } = await import(
             '@/utils/notifications-config'
           );
-          configureNotifications();
+          await configureNotifications();
+          console.log('[RootLayout] notifications configured');
         } catch (err) {
           console.warn('[RootLayout] notifications config failed', err);
         }
@@ -105,6 +121,7 @@ export default function RootLayout() {
   }, [loaded, error]);
 
   if (!loaded && !error) {
+    console.log('[RootLayout] waiting for fonts...');
     return null;
   }
 

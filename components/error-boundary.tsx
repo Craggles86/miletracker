@@ -1,5 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
-import { View, Text, ScrollView, Pressable } from 'react-native';
+import { View, Text, ScrollView, Pressable, Platform } from 'react-native';
 import { Colors } from '@/constants/Colors';
 import { Fonts } from '@/constants/Typography';
 import { t } from '@/i18n/useTranslation';
@@ -11,30 +11,44 @@ interface Props {
 interface State {
   hasError: boolean;
   error: Error | null;
+  errorInfo: ErrorInfo | null;
 }
 
 /**
  * Top-level error boundary. Without this, any render error on first launch
  * produces the "crash on launch" symptom instead of a visible message.
+ *
+ * On Android this is CRITICAL — without an error boundary, a thrown error
+ * during the first render causes the native Activity to crash before any
+ * UI is shown, appearing as "app won't open" to the user.
  */
 export class ErrorBoundary extends Component<Props, State> {
-  state: State = { hasError: false, error: null };
+  state: State = { hasError: false, error: null, errorInfo: null };
 
-  static getDerivedStateFromError(error: Error): State {
+  static getDerivedStateFromError(error: Error): Partial<State> {
     return { hasError: true, error };
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
-    // Intentionally low-noise: log for dev, but never crash on logging.
+    this.setState({ errorInfo: info });
+    // Log comprehensively so crash logs from a real device are useful
     try {
-      console.warn('[ErrorBoundary]', error, info.componentStack);
+      console.error(
+        '[ErrorBoundary] CAUGHT:',
+        error?.name,
+        error?.message,
+        '\nStack:',
+        error?.stack?.slice(0, 1000),
+        '\nComponent:',
+        info.componentStack?.slice(0, 500)
+      );
     } catch {
       // ignore
     }
   }
 
   reset = () => {
-    this.setState({ hasError: false, error: null });
+    this.setState({ hasError: false, error: null, errorInfo: null });
   };
 
   render() {
@@ -42,7 +56,13 @@ export class ErrorBoundary extends Component<Props, State> {
       return this.props.children;
     }
 
-    const message = this.state.error?.message || t('errorBoundary.defaultMessage');
+    const error = this.state.error;
+    const message = error?.message || t('errorBoundary.defaultMessage');
+    const stack = error?.stack || '';
+    const componentStack = this.state.errorInfo?.componentStack || '';
+
+    // On dev/debug builds show the full error for diagnosis
+    const showDetails = __DEV__ || Platform.OS === 'android';
 
     return (
       <View
@@ -76,6 +96,59 @@ export class ErrorBoundary extends Component<Props, State> {
           >
             {message}
           </Text>
+
+          {showDetails && (
+            <View
+              style={{
+                backgroundColor: '#1a1a2e',
+                borderRadius: 8,
+                padding: 12,
+                marginTop: 8,
+              }}
+            >
+              <Text
+                selectable
+                style={{
+                  fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+                  fontSize: 11,
+                  color: '#f87171',
+                  lineHeight: 16,
+                }}
+              >
+                {error?.name}: {message}
+              </Text>
+              {stack ? (
+                <Text
+                  selectable
+                  style={{
+                    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+                    fontSize: 10,
+                    color: '#94a3b8',
+                    lineHeight: 14,
+                    marginTop: 8,
+                  }}
+                >
+                  {stack.slice(0, 800)}
+                </Text>
+              ) : null}
+              {componentStack ? (
+                <Text
+                  selectable
+                  style={{
+                    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+                    fontSize: 10,
+                    color: '#64748b',
+                    lineHeight: 14,
+                    marginTop: 8,
+                  }}
+                >
+                  Component Stack:{'\n'}
+                  {componentStack.slice(0, 500)}
+                </Text>
+              ) : null}
+            </View>
+          )}
+
           <Pressable
             onPress={this.reset}
             style={({ pressed }) => ({
