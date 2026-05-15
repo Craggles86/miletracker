@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "MileageTrack",
+    "name": "Miletracker",
     "slug": "miletracker",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "mileagetrack",
+    "scheme": "fastshot",
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "ios": {
