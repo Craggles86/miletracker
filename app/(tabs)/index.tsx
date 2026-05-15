@@ -67,7 +67,6 @@ export default function HomeScreen() {
     >
       {/* Header */}
       <Animated.View entering={FadeIn.duration(400)} style={styles.header}>
-        <Text style={styles.appTitle}>MileageTrack</Text>
         <View style={[styles.trackingBadge, isTracking && styles.trackingActive]}>
           <View style={[styles.trackingDot, isTracking && styles.trackingDotActive]} />
           <Text style={[styles.trackingText, isTracking && styles.trackingTextActive]}>
@@ -266,12 +265,8 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-end',
     alignItems: 'center',
-  },
-  appTitle: {
-    ...typography.title,
-    color: colors.textPrimary,
   },
   trackingBadge: {
     flexDirection: 'row',
