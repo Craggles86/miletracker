@@ -1,11 +1,10 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, Switch, Pressable, ScrollView, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppStore } from '@/store/app-store';
 import { useLocationTracking } from '@/hooks/use-location-tracking';
-import { useNotifications } from '@/hooks/use-notifications';
 import { TripStatusRing } from '@/components/trip-status-ring';
 import { StatCard } from '@/components/stat-card';
 import { colors, spacing, radius, typography } from '@/constants/theme';
@@ -13,15 +12,15 @@ import { formatDistance, formatDuration, msToKmh } from '@/utils/geo';
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
-  const { permissionStatus, isTracking, startTracking, stopTracking, requestPermissions } =
+  const { permissionStatus, isTracking, isStarting, startTracking, stopTracking, requestPermissions } =
     useLocationTracking();
-  const { notifyTripStarted } = useNotifications();
 
   const activeTrip = useAppStore((s) => s.activeTrip);
   const trips = useAppStore((s) => s.trips);
   const currentSpeed = useAppStore((s) => s.currentSpeed);
   const settings = useAppStore((s) => s.settings);
   const updateSettings = useAppStore((s) => s.updateSettings);
+  const endTrip = useAppStore((s) => s.endTrip);
   const unit = settings.distanceUnit;
 
   const isTripActive = activeTrip !== null;
@@ -46,20 +45,14 @@ export default function HomeScreen() {
 
   const lastTrip = trips[0];
 
-  // Start tracking automatically on mount if permissions are granted
-  useEffect(() => {
-    if (permissionStatus === 'background_granted' && !isTracking) {
-      startTracking();
-    }
-  }, [permissionStatus, isTracking, startTracking]);
+  const handleStartTrip = async () => {
+    await startTracking();
+  };
 
-  const handleTrackingToggle = async () => {
-    if (isTracking) {
-      await stopTracking();
-    } else {
-      await startTracking();
-      await notifyTripStarted();
-    }
+  const handleStopTrip = async () => {
+    // End the active trip and stop location tracking
+    endTrip('');
+    await stopTracking();
   };
 
   const needsPermission = permissionStatus === 'undetermined' || permissionStatus === 'denied';
@@ -73,15 +66,12 @@ export default function HomeScreen() {
       {/* Header */}
       <Animated.View entering={FadeIn.duration(400)} style={styles.header}>
         <Text style={styles.appTitle}>MileageTrack</Text>
-        <Pressable
-          onPress={handleTrackingToggle}
-          style={[styles.trackingBadge, isTracking && styles.trackingActive]}
-        >
+        <View style={[styles.trackingBadge, isTracking && styles.trackingActive]}>
           <View style={[styles.trackingDot, isTracking && styles.trackingDotActive]} />
           <Text style={[styles.trackingText, isTracking && styles.trackingTextActive]}>
-            {isTracking ? 'Tracking' : 'Paused'}
+            {isTracking ? 'Tracking' : 'Idle'}
           </Text>
-        </Pressable>
+        </View>
       </Animated.View>
 
       {/* Permission Banner */}
@@ -92,7 +82,7 @@ export default function HomeScreen() {
             <View style={styles.permissionText}>
               <Text style={styles.permissionTitle}>Location Permission Required</Text>
               <Text style={styles.permissionSubtitle}>
-                Tap to grant background location access for automatic trip detection
+                Tap to grant location access for trip tracking
               </Text>
             </View>
             <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
@@ -128,7 +118,33 @@ export default function HomeScreen() {
             </View>
           </View>
         ) : (
-          <Text style={styles.waitingText}>Waiting for trip...</Text>
+          <Text style={styles.waitingText}>
+            {isTracking ? 'Waiting for movement...' : 'Tap Start Trip to begin'}
+          </Text>
+        )}
+      </Animated.View>
+
+      {/* Start / Stop Trip Button */}
+      <Animated.View entering={FadeInDown.duration(400).delay(250)}>
+        {!isTracking ? (
+          <Pressable
+            style={[styles.actionButton, styles.startButton]}
+            onPress={handleStartTrip}
+            disabled={isStarting}
+          >
+            <Ionicons name="play" size={22} color="#FFFFFF" />
+            <Text style={styles.actionButtonText}>
+              {isStarting ? 'Starting...' : 'Start Trip'}
+            </Text>
+          </Pressable>
+        ) : (
+          <Pressable
+            style={[styles.actionButton, styles.stopButton]}
+            onPress={handleStopTrip}
+          >
+            <Ionicons name="stop" size={22} color="#FFFFFF" />
+            <Text style={styles.actionButtonText}>Stop Trip</Text>
+          </Pressable>
         )}
       </Animated.View>
 
@@ -299,6 +315,27 @@ const styles = StyleSheet.create({
   waitingText: {
     ...typography.body,
     color: colors.textMuted,
+  },
+  actionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.md,
+    paddingVertical: spacing.lg,
+    borderRadius: radius.lg,
+    borderCurve: 'continuous',
+    minHeight: 56,
+  },
+  startButton: {
+    backgroundColor: colors.accent,
+  },
+  stopButton: {
+    backgroundColor: colors.danger,
+  },
+  actionButtonText: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
   toggleCard: {
     backgroundColor: colors.card,

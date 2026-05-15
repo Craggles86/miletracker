@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { View, Text, ScrollView, StyleSheet, useWindowDimensions } from 'react-native';
+import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
@@ -8,12 +8,10 @@ import { useAppStore } from '@/store/app-store';
 import { colors, spacing, radius, typography } from '@/constants/theme';
 import { formatDistance, formatDuration } from '@/utils/geo';
 import { formatDate, formatTime } from '@/utils/time';
-import { RouteMapPreview } from '@/components/route-map-preview';
 
 export default function TripDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
-  const { width } = useWindowDimensions();
   const trips = useAppStore((s) => s.trips);
   const unit = useAppStore((s) => s.settings.distanceUnit);
 
@@ -38,22 +36,40 @@ export default function TripDetailScreen() {
       contentContainerStyle={{ paddingBottom: insets.bottom + spacing.xxxl }}
       showsVerticalScrollIndicator={false}
     >
-      {/* Map Preview */}
-      <Animated.View entering={FadeIn.duration(400)}>
-        <RouteMapPreview
-          routePoints={trip.routePoints}
-          width={width}
-          height={240}
-        />
+      {/* Trip Summary Header */}
+      <Animated.View entering={FadeIn.duration(400)} style={styles.summaryHeader}>
+        <View style={styles.summaryIconRow}>
+          <View style={[styles.summaryIconCircle, { backgroundColor: badgeBg }]}>
+            <Ionicons
+              name={isBusiness ? 'briefcase' : 'car-sport'}
+              size={28}
+              color={badgeColor}
+            />
+          </View>
+        </View>
+        <View style={styles.summaryRoute}>
+          <Text style={styles.summaryFrom}>{trip.startSuburb || 'Unknown'}</Text>
+          <Ionicons name="arrow-forward" size={16} color={colors.textMuted} />
+          <Text style={styles.summaryTo}>{trip.endSuburb || 'Unknown'}</Text>
+        </View>
+        <View style={[styles.badge, { backgroundColor: badgeBg }]}>
+          <Text style={[styles.badgeText, { color: badgeColor }]}>{trip.purpose}</Text>
+        </View>
       </Animated.View>
 
       {/* Content */}
       <View style={styles.content}>
-        {/* Date & Purpose */}
-        <Animated.View entering={FadeInDown.duration(400).delay(100)} style={styles.headerRow}>
-          <Text style={styles.date}>{formatDate(trip.startTime)}</Text>
-          <View style={[styles.badge, { backgroundColor: badgeBg }]}>
-            <Text style={[styles.badgeText, { color: badgeColor }]}>{trip.purpose}</Text>
+        {/* Date & Time */}
+        <Animated.View entering={FadeInDown.duration(400).delay(100)} style={styles.dateCard}>
+          <View style={styles.dateRow}>
+            <Ionicons name="calendar-outline" size={18} color={colors.textSecondary} />
+            <Text selectable style={styles.dateText}>{formatDate(trip.startTime)}</Text>
+          </View>
+          <View style={styles.dateRow}>
+            <Ionicons name="time-outline" size={18} color={colors.textSecondary} />
+            <Text selectable style={styles.dateText}>
+              {formatTime(trip.startTime)} – {formatTime(trip.endTime)}
+            </Text>
           </View>
         </Animated.View>
 
@@ -67,12 +83,12 @@ export default function TripDetailScreen() {
             </View>
             <View style={styles.routeLabels}>
               <View style={styles.routeLabel}>
-                <Text style={styles.routeSuburb}>{trip.startSuburb || 'Unknown'}</Text>
-                <Text style={styles.routeTime}>{formatTime(trip.startTime)}</Text>
+                <Text selectable style={styles.routeSuburb}>{trip.startSuburb || 'Unknown'}</Text>
+                <Text selectable style={styles.routeTime}>{formatTime(trip.startTime)}</Text>
               </View>
               <View style={styles.routeLabel}>
-                <Text style={styles.routeSuburb}>{trip.endSuburb || 'Unknown'}</Text>
-                <Text style={styles.routeTime}>{formatTime(trip.endTime)}</Text>
+                <Text selectable style={styles.routeSuburb}>{trip.endSuburb || 'Unknown'}</Text>
+                <Text selectable style={styles.routeTime}>{formatTime(trip.endTime)}</Text>
               </View>
             </View>
           </View>
@@ -84,7 +100,7 @@ export default function TripDetailScreen() {
             <View style={[styles.statIcon, { backgroundColor: colors.primary + '20' }]}>
               <Ionicons name="speedometer" size={18} color={colors.primary} />
             </View>
-            <Text style={styles.statValue}>
+            <Text selectable style={styles.statValue}>
               {formatDistance(trip.distance, unit)} {unit}
             </Text>
             <Text style={styles.statLabel}>Distance</Text>
@@ -94,7 +110,7 @@ export default function TripDetailScreen() {
             <View style={[styles.statIcon, { backgroundColor: colors.accent + '20' }]}>
               <Ionicons name="time" size={18} color={colors.accent} />
             </View>
-            <Text style={styles.statValue}>{formatDuration(trip.duration)}</Text>
+            <Text selectable style={styles.statValue}>{formatDuration(trip.duration)}</Text>
             <Text style={styles.statLabel}>Duration</Text>
           </View>
 
@@ -102,7 +118,7 @@ export default function TripDetailScreen() {
             <View style={[styles.statIcon, { backgroundColor: colors.warning + '20' }]}>
               <Ionicons name="navigate" size={18} color={colors.warning} />
             </View>
-            <Text style={styles.statValue}>{trip.routePoints.length}</Text>
+            <Text selectable style={styles.statValue}>{trip.routePoints.length}</Text>
             <Text style={styles.statLabel}>GPS Points</Text>
           </View>
 
@@ -111,7 +127,7 @@ export default function TripDetailScreen() {
               <View style={[styles.statIcon, { backgroundColor: colors.danger + '20' }]}>
                 <Ionicons name="resize" size={18} color={colors.danger} />
               </View>
-              <Text style={styles.statValue}>{trip.scalingFactor.toFixed(2)}x</Text>
+              <Text selectable style={styles.statValue}>{trip.scalingFactor.toFixed(2)}x</Text>
               <Text style={styles.statLabel}>Calibration</Text>
             </View>
           )}
@@ -135,16 +151,33 @@ const styles = StyleSheet.create({
     ...typography.body,
     color: colors.textSecondary,
   },
-  content: {
-    padding: spacing.xl,
-    gap: spacing.xl,
-  },
-  headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  summaryHeader: {
+    backgroundColor: colors.card,
+    paddingVertical: spacing.xxxl,
+    paddingHorizontal: spacing.xl,
     alignItems: 'center',
+    gap: spacing.md,
   },
-  date: {
+  summaryIconRow: {
+    marginBottom: spacing.sm,
+  },
+  summaryIconCircle: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  summaryRoute: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  summaryFrom: {
+    ...typography.headline,
+    color: colors.textPrimary,
+  },
+  summaryTo: {
     ...typography.headline,
     color: colors.textPrimary,
   },
@@ -157,6 +190,26 @@ const styles = StyleSheet.create({
   badgeText: {
     ...typography.caption,
     fontWeight: '600',
+  },
+  content: {
+    padding: spacing.xl,
+    gap: spacing.xl,
+  },
+  dateCard: {
+    backgroundColor: colors.card,
+    borderRadius: radius.lg,
+    padding: spacing.lg,
+    gap: spacing.md,
+    borderCurve: 'continuous',
+  },
+  dateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+  },
+  dateText: {
+    ...typography.body,
+    color: colors.textPrimary,
   },
   routeCard: {
     backgroundColor: colors.card,

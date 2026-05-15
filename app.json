@@ -10,17 +10,8 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": false,
-      "config": {
-        "googleMapsApiKey": "AIzaSyAHOxVHet_aTtkvyTS1V-QXFfkNNP0FiPs"
-      },
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "MileageTrack uses your location to log your trips while the app is open.",
-        "NSLocationAlwaysAndWhenInUseUsageDescription": "MileageTrack uses your location in the background to automatically detect and log your trips.",
-        "NSLocationAlwaysUsageDescription": "MileageTrack uses your location in the background to automatically detect and log your trips.",
-        "UIBackgroundModes": [
-          "location",
-          "fetch"
-        ]
+        "NSLocationWhenInUseUsageDescription": "MileageTrack uses your location to log your trips while the app is open."
       }
     },
     "android": {
@@ -30,19 +21,9 @@
       },
       "edgeToEdgeEnabled": true,
       "package": "com.craggles.miletracker",
-      "config": {
-        "googleMaps": {
-          "apiKey": "AIzaSyBNaUHLFvZTgSS7f8l2_C8QbxMxYRubYYA"
-        }
-      },
       "permissions": [
         "ACCESS_COARSE_LOCATION",
-        "ACCESS_FINE_LOCATION",
-        "ACCESS_BACKGROUND_LOCATION",
-        "FOREGROUND_SERVICE",
-        "FOREGROUND_SERVICE_LOCATION",
-        "POST_NOTIFICATIONS",
-        "WAKE_LOCK"
+        "ACCESS_FINE_LOCATION"
       ]
     },
     "web": {
@@ -64,11 +45,7 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "MileageTrack uses your location to log your trips while the app is open.",
-          "locationAlwaysAndWhenInUsePermission": "MileageTrack uses your location in the background to automatically detect and log your trips.",
-          "locationAlwaysPermission": "MileageTrack uses your location in the background to automatically detect and log your trips.",
-          "isAndroidBackgroundLocationEnabled": true,
-          "isAndroidForegroundServiceEnabled": true
+          "locationWhenInUsePermission": "MileageTrack uses your location to log your trips while the app is open."
         }
       ],
       [
@@ -83,7 +60,6 @@
     },
     "owner": "craggles_86",
     "extra": {
-      "googleMapsApiKey": "AIzaSyBNaUHLFvZTgSS7f8l2_C8QbxMxYRubYYA",
       "router": {},
       "eas": {
         "projectId": "8c311382-907c-4530-9fb3-84a3f0d8c38c"
