@@ -1,355 +1,119 @@
-import { useRef, useCallback, useState, useEffect } from 'react';
-import { View, Text, ActivityIndicator } from 'react-native';
-import MapView, { Polyline, Marker, PROVIDER_GOOGLE } from 'react-native-maps';
-import { Colors } from '@/constants/Colors';
-import { Fonts } from '@/constants/Typography';
-import type { LatLng } from '@/store/types';
+import React, { useMemo } from 'react';
+import { View, Text, StyleSheet, Platform } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { RoutePoint } from '@/store/types';
+import { colors, spacing, typography } from '@/constants/theme';
 
 interface RouteMapPreviewProps {
-  routePoints: LatLng[];
-  height?: number;
-  startSuburb?: string;
-  endSuburb?: string;
+  routePoints: RoutePoint[];
+  width: number;
+  height: number;
 }
 
-// Dark map style to match the app's dark theme
-const DARK_MAP_STYLE = [
-  { elementType: 'geometry', stylers: [{ color: '#1a2744' }] },
-  { elementType: 'labels.text.fill', stylers: [{ color: '#8a9ab5' }] },
-  { elementType: 'labels.text.stroke', stylers: [{ color: '#1a2744' }] },
-  { featureType: 'administrative.locality', elementType: 'labels.text.fill', stylers: [{ color: '#b0bec5' }] },
-  { featureType: 'poi', elementType: 'labels.text.fill', stylers: [{ color: '#7a8da6' }] },
-  { featureType: 'poi.park', elementType: 'geometry', stylers: [{ color: '#1e3a2f' }] },
-  { featureType: 'poi.park', elementType: 'labels.text.fill', stylers: [{ color: '#5b8a72' }] },
-  { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#2c3e5a' }] },
-  { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#1a2744' }] },
-  { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#3a4f6e' }] },
-  { featureType: 'road.highway', elementType: 'geometry.stroke', stylers: [{ color: '#1a2744' }] },
-  { featureType: 'road.highway', elementType: 'labels.text.fill', stylers: [{ color: '#b0bec5' }] },
-  { featureType: 'transit', elementType: 'geometry', stylers: [{ color: '#243352' }] },
-  { featureType: 'transit.station', elementType: 'labels.text.fill', stylers: [{ color: '#7a8da6' }] },
-  { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#0e1626' }] },
-  { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#4a5d78' }] },
-  { featureType: 'water', elementType: 'labels.text.stroke', stylers: [{ color: '#0e1626' }] },
-];
+// Map component only available on native
+let MapView: any = null;
+let Polyline: any = null;
 
-const MAP_LOAD_TIMEOUT_MS = 15000;
+if (Platform.OS !== 'web') {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const Maps = require('react-native-maps');
+    MapView = Maps.default;
+    Polyline = Maps.Polyline;
+  } catch {
+    // Maps not available
+  }
+}
 
-export function RouteMapPreview({
-  routePoints,
-  height = 220,
-  startSuburb,
-  endSuburb,
-}: RouteMapPreviewProps) {
-  const mapRef = useRef<MapView>(null);
-  const [mapReady, setMapReady] = useState(false);
-  const [mapTimedOut, setMapTimedOut] = useState(false);
+export function RouteMapPreview({ routePoints, width, height }: RouteMapPreviewProps) {
+  const region = useMemo(() => {
+    if (routePoints.length === 0) return null;
 
-  // Timeout fallback if map never fires onMapReady
-  useEffect(() => {
-    if (mapReady || routePoints.length < 2) return;
-    const timer = setTimeout(() => {
-      if (!mapReady) setMapTimedOut(true);
-    }, MAP_LOAD_TIMEOUT_MS);
-    return () => clearTimeout(timer);
-  }, [mapReady, routePoints.length]);
+    let minLat = routePoints[0].lat;
+    let maxLat = routePoints[0].lat;
+    let minLng = routePoints[0].lng;
+    let maxLng = routePoints[0].lng;
 
-  const handleMapReady = useCallback(() => {
-    setMapReady(true);
-    setMapTimedOut(false);
-    if (routePoints.length >= 2 && mapRef.current) {
-      const coords = routePoints.map((p) => ({
-        latitude: p.lat,
-        longitude: p.lng,
-      }));
-      mapRef.current.fitToCoordinates(coords, {
-        edgePadding: { top: 40, right: 40, bottom: 50, left: 40 },
-        animated: false,
-      });
+    for (const p of routePoints) {
+      minLat = Math.min(minLat, p.lat);
+      maxLat = Math.max(maxLat, p.lat);
+      minLng = Math.min(minLng, p.lng);
+      maxLng = Math.max(maxLng, p.lng);
     }
+
+    const latDelta = Math.max((maxLat - minLat) * 1.3, 0.01);
+    const lngDelta = Math.max((maxLng - minLng) * 1.3, 0.01);
+
+    return {
+      latitude: (minLat + maxLat) / 2,
+      longitude: (minLng + maxLng) / 2,
+      latitudeDelta: latDelta,
+      longitudeDelta: lngDelta,
+    };
   }, [routePoints]);
 
-  if (routePoints.length < 2) {
+  const coordinates = useMemo(
+    () => routePoints.map((p) => ({ latitude: p.lat, longitude: p.lng })),
+    [routePoints]
+  );
+
+  // Fallback for web or when no route points
+  if (!MapView || !region || routePoints.length < 2) {
     return (
-      <View
-        style={{
-          height,
-          backgroundColor: Colors.card,
-          borderRadius: 16,
-          borderCurve: 'continuous',
-          alignItems: 'center',
-          justifyContent: 'center',
-          borderWidth: 1,
-          borderColor: Colors.border,
-        }}
-      >
-        <Text
-          style={{
-            fontFamily: Fonts.regular,
-            fontSize: 14,
-            color: Colors.textSecondary,
-          }}
-        >
-          No route data available
+      <View style={[styles.fallback, { width, height }]}>
+        <Ionicons name="map-outline" size={40} color={colors.textMuted} />
+        <Text style={styles.fallbackText}>
+          {routePoints.length < 2 ? 'Not enough GPS data' : 'Map preview'}
         </Text>
       </View>
     );
   }
 
-  const coordinates = routePoints.map((p) => ({
-    latitude: p.lat,
-    longitude: p.lng,
-  }));
-
-  const startCoord = coordinates[0];
-  const endCoord = coordinates[coordinates.length - 1];
-
-  // Compute initial region from route bounds
-  const lats = routePoints.map((p) => p.lat);
-  const lngs = routePoints.map((p) => p.lng);
-  const minLat = Math.min(...lats);
-  const maxLat = Math.max(...lats);
-  const minLng = Math.min(...lngs);
-  const maxLng = Math.max(...lngs);
-  const initialRegion = {
-    latitude: (minLat + maxLat) / 2,
-    longitude: (minLng + maxLng) / 2,
-    latitudeDelta: (maxLat - minLat) * 1.4 || 0.01,
-    longitudeDelta: (maxLng - minLng) * 1.4 || 0.01,
-  };
-
   return (
-    <View
-      style={{
-        height,
-        backgroundColor: Colors.card,
-        borderRadius: 16,
-        borderCurve: 'continuous',
-        overflow: 'hidden',
-        borderWidth: 1,
-        borderColor: Colors.border,
-      }}
-    >
-      {!mapTimedOut ? (
-        <MapView
-          ref={mapRef}
-          provider={PROVIDER_GOOGLE}
-          style={{ flex: 1 }}
-          initialRegion={initialRegion}
-          customMapStyle={DARK_MAP_STYLE}
-          onMapReady={handleMapReady}
-          scrollEnabled={false}
-          zoomEnabled={false}
-          rotateEnabled={false}
-          pitchEnabled={false}
-          toolbarEnabled={false}
-          showsUserLocation={false}
-          showsMyLocationButton={false}
-          showsCompass={false}
-          showsScale={false}
-          showsTraffic={false}
-          showsBuildings={false}
-          showsIndoors={false}
-          showsPointsOfInterest={false}
-          loadingEnabled
-          loadingIndicatorColor={Colors.primary}
-          loadingBackgroundColor={Colors.card}
-        >
-          {/* Glow polyline (wider, semi-transparent) */}
-          <Polyline
-            coordinates={coordinates}
-            strokeColor={`${Colors.primary}40`}
-            strokeWidth={8}
-          />
-
-          {/* Main route polyline */}
-          <Polyline
-            coordinates={coordinates}
-            strokeColor={Colors.primary}
-            strokeWidth={4}
-          />
-
-          {/* Start marker */}
-          <Marker coordinate={startCoord} anchor={{ x: 0.5, y: 0.5 }}>
-            <View
-              style={{
-                width: 20,
-                height: 20,
-                borderRadius: 10,
-                backgroundColor: `${Colors.accent}40`,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <View
-                style={{
-                  width: 12,
-                  height: 12,
-                  borderRadius: 6,
-                  backgroundColor: Colors.accent,
-                  borderWidth: 2,
-                  borderColor: '#ffffff',
-                }}
-              />
-            </View>
-          </Marker>
-
-          {/* End marker */}
-          <Marker coordinate={endCoord} anchor={{ x: 0.5, y: 0.5 }}>
-            <View
-              style={{
-                width: 20,
-                height: 20,
-                borderRadius: 10,
-                backgroundColor: `${Colors.danger}40`,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <View
-                style={{
-                  width: 12,
-                  height: 12,
-                  borderRadius: 6,
-                  backgroundColor: Colors.danger,
-                  borderWidth: 2,
-                  borderColor: '#ffffff',
-                }}
-              />
-            </View>
-          </Marker>
-        </MapView>
-      ) : (
-        <View
-          style={{
-            flex: 1,
-            alignItems: 'center',
-            justifyContent: 'center',
-            backgroundColor: Colors.card,
-          }}
-        >
-          <Text
-            style={{
-              fontFamily: Fonts.medium,
-              fontSize: 14,
-              color: Colors.textSecondary,
-            }}
-          >
-            Map unavailable
-          </Text>
-        </View>
-      )}
-
-      {/* Loading overlay while map initializes */}
-      {!mapReady && !mapTimedOut && (
-        <View
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            alignItems: 'center',
-            justifyContent: 'center',
-            backgroundColor: Colors.card,
-          }}
-        >
-          <ActivityIndicator size="small" color={Colors.primary} />
-          <Text
-            style={{
-              fontFamily: Fonts.regular,
-              fontSize: 12,
-              color: Colors.textSecondary,
-              marginTop: 8,
-            }}
-          >
-            Loading map...
-          </Text>
-        </View>
-      )}
-
-      {/* Suburb labels overlay */}
-      {(startSuburb || endSuburb) && (
-        <View
-          style={{
-            position: 'absolute',
-            bottom: 10,
-            left: 12,
-            right: 12,
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-          }}
-        >
-          {startSuburb ? (
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 4,
-                backgroundColor: 'rgba(15, 23, 42, 0.85)',
-                paddingHorizontal: 8,
-                paddingVertical: 3,
-                borderRadius: 6,
-                borderCurve: 'continuous',
-              }}
-            >
-              <View
-                style={{
-                  width: 6,
-                  height: 6,
-                  borderRadius: 3,
-                  backgroundColor: Colors.accent,
-                }}
-              />
-              <Text
-                style={{
-                  fontFamily: Fonts.medium,
-                  fontSize: 11,
-                  color: Colors.textSecondary,
-                }}
-              >
-                {startSuburb}
-              </Text>
-            </View>
-          ) : (
-            <View />
-          )}
-          {endSuburb ? (
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 4,
-                backgroundColor: 'rgba(15, 23, 42, 0.85)',
-                paddingHorizontal: 8,
-                paddingVertical: 3,
-                borderRadius: 6,
-                borderCurve: 'continuous',
-              }}
-            >
-              <View
-                style={{
-                  width: 6,
-                  height: 6,
-                  borderRadius: 3,
-                  backgroundColor: Colors.danger,
-                }}
-              />
-              <Text
-                style={{
-                  fontFamily: Fonts.medium,
-                  fontSize: 11,
-                  color: Colors.textSecondary,
-                }}
-              >
-                {endSuburb}
-              </Text>
-            </View>
-          ) : (
-            <View />
-          )}
-        </View>
-      )}
+    <View style={[styles.mapContainer, { width, height }]}>
+      <MapView
+        style={StyleSheet.absoluteFill}
+        initialRegion={region}
+        scrollEnabled={false}
+        zoomEnabled={false}
+        rotateEnabled={false}
+        pitchEnabled={false}
+        userInterfaceStyle="dark"
+        customMapStyle={darkMapStyle}
+      >
+        <Polyline
+          coordinates={coordinates}
+          strokeColor={colors.primary}
+          strokeWidth={4}
+        />
+      </MapView>
     </View>
   );
 }
+
+// Dark mode map style for Google Maps
+const darkMapStyle = [
+  { elementType: 'geometry', stylers: [{ color: '#1E293B' }] },
+  { elementType: 'labels.text.stroke', stylers: [{ color: '#0F172A' }] },
+  { elementType: 'labels.text.fill', stylers: [{ color: '#94A3B8' }] },
+  { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#334155' }] },
+  { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#0F172A' }] },
+  { featureType: 'poi', stylers: [{ visibility: 'off' }] },
+];
+
+const styles = StyleSheet.create({
+  mapContainer: {
+    overflow: 'hidden',
+    backgroundColor: colors.card,
+  },
+  fallback: {
+    backgroundColor: colors.card,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+  },
+  fallbackText: {
+    ...typography.callout,
+    color: colors.textMuted,
+  },
+});

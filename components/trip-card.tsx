@@ -1,193 +1,148 @@
-import { View, Text, Pressable } from 'react-native';
-import Animated, {
-  FadeInUp,
-  FadeOut,
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-  LinearTransition,
-} from 'react-native-reanimated';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Ionicons from '@expo/vector-icons/Ionicons';
-import { Colors } from '@/constants/Colors';
-import { Fonts } from '@/constants/Typography';
-import { formatDistance, formatDuration, formatTripDateLocale } from '@/utils/helpers';
-import { useTranslation } from '@/i18n/useTranslation';
-import type { Trip } from '@/store/types';
+import React from 'react';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { Trip } from '@/store/types';
+import { useAppStore } from '@/store/app-store';
+import { colors, spacing, radius, typography } from '@/constants/theme';
+import { formatDistance, formatDuration } from '@/utils/geo';
+import { formatDate, formatTime } from '@/utils/time';
 
 interface TripCardProps {
   trip: Trip;
-  unit: 'km' | 'miles';
-  index: number;
-  onPress: () => void;
-  onDelete: () => void;
+  onPress?: () => void;
 }
 
-export function TripCard({ trip, unit, index, onPress, onDelete }: TripCardProps) {
-  const { t, locale } = useTranslation();
-  const translateX = useSharedValue(0);
-  const deleteWidth = 80;
-
-  const panGesture = Gesture.Pan()
-    .activeOffsetX([-10, 10])
-    .failOffsetY([-5, 5])
-    .onUpdate((e) => {
-      if (e.translationX < 0) {
-        translateX.value = Math.max(e.translationX, -deleteWidth - 20);
-      }
-    })
-    .onEnd((e) => {
-      if (e.translationX < -deleteWidth / 2) {
-        translateX.value = withTiming(-deleteWidth);
-      } else {
-        translateX.value = withTiming(0);
-      }
-    });
-
-  const cardStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: translateX.value }],
-  }));
-
-  const deleteStyle = useAnimatedStyle(() => ({
-    opacity: Math.min(1, Math.abs(translateX.value) / deleteWidth),
-  }));
+export function TripCard({ trip, onPress }: TripCardProps) {
+  const unit = useAppStore((s) => s.settings.distanceUnit);
 
   const isBusiness = trip.purpose === 'Business';
-  const badgeColor = isBusiness ? Colors.businessBadge : Colors.personalBadge;
-  const purposeLabel = isBusiness ? t('trips.business') : t('trips.personal');
-  const unknown = t('common.unknown');
-  const routeLabel = `${trip.startSuburb || unknown} → ${trip.endSuburb || unknown}`;
+  const badgeColor = isBusiness ? colors.primary : colors.warning;
+  const badgeBg = isBusiness ? colors.primary + '20' : colors.warning + '20';
 
   return (
-    <Animated.View
-      entering={FadeInUp.delay(Math.min(index * 50, 400)).duration(350)}
-      exiting={FadeOut.duration(200)}
-      layout={LinearTransition.duration(250)}
-      style={{ overflow: 'hidden', borderRadius: 14, borderCurve: 'continuous' }}
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [styles.card, pressed && styles.pressed]}
     >
-      {/* Delete background */}
-      <Animated.View
-        style={[
-          {
-            position: 'absolute',
-            right: 0,
-            top: 0,
-            bottom: 0,
-            width: deleteWidth,
-            backgroundColor: Colors.dangerBg,
-            borderRadius: 14,
-            borderCurve: 'continuous',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 4,
-          },
-          deleteStyle,
-        ]}
-      >
-        <Pressable
-          onPress={onDelete}
-          style={{ alignItems: 'center', justifyContent: 'center', gap: 4, padding: 8 }}
-        >
-          <Ionicons name="trash" size={22} color="#fff" />
-          <Text style={{ fontFamily: Fonts.semiBold, fontSize: 12, color: '#fff' }}>
-            {t('common.delete')}
+      <View style={styles.topRow}>
+        <View style={styles.dateRow}>
+          <Ionicons name="calendar-outline" size={14} color={colors.textSecondary} />
+          <Text style={styles.date}>{formatDate(trip.startTime)}</Text>
+        </View>
+        <View style={[styles.badge, { backgroundColor: badgeBg }]}>
+          <Text style={[styles.badgeText, { color: badgeColor }]}>{trip.purpose}</Text>
+        </View>
+      </View>
+
+      <View style={styles.routeRow}>
+        <View style={styles.routePoint}>
+          <View style={[styles.dot, { backgroundColor: colors.accent }]} />
+          <Text style={styles.suburb} numberOfLines={1}>
+            {trip.startSuburb || 'Unknown'}
           </Text>
-        </Pressable>
-      </Animated.View>
+        </View>
+        <View style={styles.routeLine} />
+        <View style={styles.routePoint}>
+          <View style={[styles.dot, { backgroundColor: colors.primary }]} />
+          <Text style={styles.suburb} numberOfLines={1}>
+            {trip.endSuburb || 'Unknown'}
+          </Text>
+        </View>
+      </View>
 
-      {/* Card content */}
-      <GestureDetector gesture={panGesture}>
-        <Animated.View style={cardStyle}>
-          <Pressable
-            onPress={onPress}
-            style={({ pressed }) => ({
-              backgroundColor: Colors.card,
-              borderRadius: 14,
-              borderCurve: 'continuous',
-              padding: 16,
-              borderWidth: 1,
-              borderColor: Colors.border,
-              opacity: pressed ? 0.85 : 1,
-            })}
-          >
-            {/* Header: date + badge */}
-            <View
-              style={{
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: 8,
-              }}
-            >
-              <Text
-                style={{
-                  fontFamily: Fonts.regular,
-                  fontSize: 13,
-                  color: Colors.textSecondary,
-                }}
-              >
-                {formatTripDateLocale(trip.startTime, locale)}
-              </Text>
-              <View
-                style={{
-                  backgroundColor: badgeColor,
-                  paddingHorizontal: 10,
-                  paddingVertical: 3,
-                  borderRadius: 6,
-                  borderCurve: 'continuous',
-                }}
-              >
-                <Text
-                  style={{ fontFamily: Fonts.semiBold, fontSize: 11, color: '#fff' }}
-                >
-                  {purposeLabel}
-                </Text>
-              </View>
-            </View>
-
-            {/* Route */}
-            <Text
-              selectable
-              style={{
-                fontFamily: Fonts.semiBold,
-                fontSize: 16,
-                color: Colors.textPrimary,
-                marginBottom: 6,
-              }}
-              numberOfLines={1}
-            >
-              {routeLabel}
-            </Text>
-
-            {/* Stats */}
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <Text
-                selectable
-                style={{
-                  fontFamily: Fonts.medium,
-                  fontSize: 13,
-                  color: Colors.textSecondary,
-                  fontVariant: ['tabular-nums'],
-                }}
-              >
-                {formatDistance(trip.distance, unit)}
-              </Text>
-              <Text style={{ color: Colors.textSecondary, fontSize: 10 }}>•</Text>
-              <Text
-                selectable
-                style={{
-                  fontFamily: Fonts.medium,
-                  fontSize: 13,
-                  color: Colors.textSecondary,
-                  fontVariant: ['tabular-nums'],
-                }}
-              >
-                {formatDuration(trip.duration)}
-              </Text>
-            </View>
-          </Pressable>
-        </Animated.View>
-      </GestureDetector>
-    </Animated.View>
+      <View style={styles.statsRow}>
+        <View style={styles.stat}>
+          <Ionicons name="speedometer-outline" size={14} color={colors.textMuted} />
+          <Text style={styles.statText}>
+            {formatDistance(trip.distance, unit)} {unit}
+          </Text>
+        </View>
+        <View style={styles.stat}>
+          <Ionicons name="time-outline" size={14} color={colors.textMuted} />
+          <Text style={styles.statText}>{formatDuration(trip.duration)}</Text>
+        </View>
+        <View style={styles.stat}>
+          <Ionicons name="time-outline" size={14} color={colors.textMuted} />
+          <Text style={styles.statText}>{formatTime(trip.startTime)}</Text>
+        </View>
+      </View>
+    </Pressable>
   );
 }
+
+const styles = StyleSheet.create({
+  card: {
+    backgroundColor: colors.card,
+    borderRadius: radius.lg,
+    padding: spacing.lg,
+    gap: spacing.md,
+    borderCurve: 'continuous',
+  },
+  pressed: {
+    opacity: 0.85,
+    transform: [{ scale: 0.98 }],
+  },
+  topRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  dateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  date: {
+    ...typography.callout,
+    color: colors.textSecondary,
+  },
+  badge: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: radius.sm,
+    borderCurve: 'continuous',
+  },
+  badgeText: {
+    ...typography.caption,
+    fontWeight: '600',
+  },
+  routeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  routePoint: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    flex: 1,
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  routeLine: {
+    flex: 0.3,
+    height: 1,
+    backgroundColor: colors.borderSubtle,
+  },
+  suburb: {
+    ...typography.body,
+    color: colors.textPrimary,
+    flex: 1,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    gap: spacing.lg,
+  },
+  stat: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  statText: {
+    ...typography.callout,
+    color: colors.textMuted,
+  },
+});

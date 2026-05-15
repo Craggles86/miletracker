@@ -1,65 +1,67 @@
-import { View, Text } from 'react-native';
-import Animated, { FadeInUp } from 'react-native-reanimated';
-import { Colors } from '@/constants/Colors';
-import { Fonts } from '@/constants/Typography';
+import React from 'react';
+import { View, Text, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { colors, spacing, radius, typography } from '@/constants/theme';
 
 interface StatCardProps {
   label: string;
   value: string;
-  unit?: string;
-  index?: number;
+  unit: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  color?: string;
 }
 
-export function StatCard({ label, value, unit, index = 0 }: StatCardProps) {
+export function StatCard({ label, value, unit, icon, color = colors.primary }: StatCardProps) {
   return (
-    <Animated.View
-      entering={FadeInUp.delay(200 + index * 100).duration(400)}
-      style={{
-        flex: 1,
-        backgroundColor: Colors.card,
-        borderRadius: 14,
-        borderCurve: 'continuous',
-        padding: 16,
-        borderWidth: 1,
-        borderColor: Colors.border,
-      }}
-    >
-      <Text
-        style={{
-          fontFamily: Fonts.medium,
-          fontSize: 11,
-          color: Colors.textSecondary,
-          textTransform: 'uppercase',
-          letterSpacing: 0.8,
-          marginBottom: 6,
-        }}
-      >
-        {label}
-      </Text>
-      <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 4 }}>
-        <Text
-          selectable
-          style={{
-            fontFamily: Fonts.bold,
-            fontSize: 22,
-            color: Colors.textPrimary,
-            fontVariant: ['tabular-nums'],
-          }}
-        >
-          {value}
-        </Text>
-        {unit && (
-          <Text
-            style={{
-              fontFamily: Fonts.medium,
-              fontSize: 14,
-              color: Colors.textSecondary,
-            }}
-          >
-            {unit}
-          </Text>
-        )}
+    <View style={styles.card}>
+      <View style={[styles.iconBg, { backgroundColor: color + '20' }]}>
+        <Ionicons name={icon} size={18} color={color} />
       </View>
-    </Animated.View>
+      <Text style={styles.label}>{label}</Text>
+      <View style={styles.valueRow}>
+        <Text style={styles.value}>{value}</Text>
+        <Text style={styles.unit}>{unit}</Text>
+      </View>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  card: {
+    flex: 1,
+    backgroundColor: colors.card,
+    borderRadius: radius.lg,
+    padding: spacing.lg,
+    gap: spacing.sm,
+    borderCurve: 'continuous',
+  },
+  iconBg: {
+    width: 32,
+    height: 32,
+    borderRadius: radius.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderCurve: 'continuous',
+  },
+  label: {
+    ...typography.caption,
+    color: colors.textSecondary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  valueRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: spacing.xs,
+  },
+  value: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: colors.textPrimary,
+    fontVariant: ['tabular-nums'],
+  },
+  unit: {
+    ...typography.callout,
+    color: colors.textSecondary,
+  },
+});

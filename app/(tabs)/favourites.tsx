@@ -1,388 +1,241 @@
-import { useState } from 'react';
-import { View, Text, TextInput, ScrollView, Pressable, Modal } from 'react-native';
-import Animated, { FadeIn } from 'react-native-reanimated';
-import Ionicons from '@expo/vector-icons/Ionicons';
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  Pressable,
+  FlatList,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Colors } from '@/constants/Colors';
-import { Fonts } from '@/constants/Typography';
-import { useAppStore } from '@/store/useAppStore';
+import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
+import { Swipeable } from 'react-native-gesture-handler';
+import { Ionicons } from '@expo/vector-icons';
+import { useAppStore } from '@/store/app-store';
 import { FavouriteCard } from '@/components/favourite-card';
-import { useTranslation } from '@/i18n/useTranslation';
-
-// Stable identifiers for the three label options — the displayed text is
-// translated from these identifiers via i18n.
-const LABEL_OPTIONS = ['Home', 'Work', 'Custom'] as const;
+import { FavouriteLocation } from '@/store/types';
+import { colors, spacing, radius, typography } from '@/constants/theme';
 
 export default function FavouritesScreen() {
   const insets = useSafeAreaInsets();
-  const { t } = useTranslation();
   const favourites = useAppStore((s) => s.favourites);
   const addFavourite = useAppStore((s) => s.addFavourite);
   const deleteFavourite = useAppStore((s) => s.deleteFavourite);
 
-  const labelText = (opt: string) => {
-    if (opt === 'Home') return t('favourites.labelHome');
-    if (opt === 'Work') return t('favourites.labelWork');
-    return t('favourites.labelCustom');
-  };
-
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [newLabel, setNewLabel] = useState('Home');
-  const [customLabel, setCustomLabel] = useState('');
-  const [newAddress, setNewAddress] = useState('');
-  const [newSuburb, setNewSuburb] = useState('');
-
-  const resetForm = () => {
-    setNewLabel('Home');
-    setCustomLabel('');
-    setNewAddress('');
-    setNewSuburb('');
-  };
+  const [showForm, setShowForm] = useState(false);
+  const [label, setLabel] = useState('');
+  const [address, setAddress] = useState('');
+  const [suburb, setSuburb] = useState('');
 
   const handleAdd = () => {
-    const label =
-      newLabel === 'Custom'
-        ? customLabel.trim() || t('favourites.labelCustom')
-        : newLabel === 'Home'
-        ? t('favourites.labelHome')
-        : t('favourites.labelWork');
-    if (!newSuburb.trim()) return;
-
+    if (!label.trim() || !suburb.trim()) {
+      Alert.alert('Missing Info', 'Please enter a label and suburb.');
+      return;
+    }
     addFavourite({
-      label,
-      address: newAddress.trim(),
-      suburb: newSuburb.trim(),
-      // Default coords (user would normally get these from geocoding)
-      lat: -33.8688 + (Math.random() - 0.5) * 0.1,
-      lng: 151.2093 + (Math.random() - 0.5) * 0.1,
+      label: label.trim(),
+      address: address.trim(),
+      suburb: suburb.trim(),
+      lat: 0, // Would use geocoding in production
+      lng: 0,
     });
-    setShowAddModal(false);
-    resetForm();
+    setLabel('');
+    setAddress('');
+    setSuburb('');
+    setShowForm(false);
   };
 
-  return (
-    <View style={{ flex: 1, backgroundColor: Colors.background }}>
-      <ScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={{
-          paddingTop: insets.top + 16,
-          paddingHorizontal: 20,
-          paddingBottom: 32,
-        }}
+  const handleDelete = (id: string) => {
+    Alert.alert('Delete Favourite', 'Remove this favourite location?', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Delete', style: 'destructive', onPress: () => deleteFavourite(id) },
+    ]);
+  };
+
+  const renderItem = ({ item, index }: { item: FavouriteLocation; index: number }) => (
+    <Animated.View entering={FadeInDown.duration(300).delay(index * 60)}>
+      <Swipeable
+        renderRightActions={() => (
+          <Pressable style={styles.deleteAction} onPress={() => handleDelete(item.id)}>
+            <Ionicons name="trash" size={22} color="#FFFFFF" />
+          </Pressable>
+        )}
+        overshootRight={false}
       >
-        {/* Header */}
-        <Animated.View
-          entering={FadeIn.duration(400)}
-          style={{
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: 20,
-          }}
-        >
-          <Text
-            style={{
-              fontFamily: Fonts.bold,
-              fontSize: 26,
-              color: Colors.textPrimary,
-            }}
-          >
-            {t('favourites.title')}
-          </Text>
+        <FavouriteCard favourite={item} onDelete={() => handleDelete(item.id)} />
+      </Swipeable>
+    </Animated.View>
+  );
+
+  return (
+    <KeyboardAvoidingView
+      style={styles.screen}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+      <View style={[styles.screen, { paddingTop: insets.top }]}>
+        <Animated.View entering={FadeIn.duration(400)} style={styles.headerRow}>
+          <Text style={styles.title}>Favourites</Text>
           <Pressable
-            onPress={() => setShowAddModal(true)}
-            style={({ pressed }) => ({
-              backgroundColor: Colors.primary,
-              width: 38,
-              height: 38,
-              borderRadius: 12,
-              borderCurve: 'continuous',
-              alignItems: 'center',
-              justifyContent: 'center',
-              opacity: pressed ? 0.8 : 1,
-            })}
+            onPress={() => setShowForm(!showForm)}
+            style={styles.addBtn}
           >
-            <Ionicons name="add" size={22} color="#fff" />
+            <Ionicons
+              name={showForm ? 'close' : 'add'}
+              size={22}
+              color={colors.primary}
+            />
           </Pressable>
         </Animated.View>
 
-        {/* Empty state */}
-        {favourites.length === 0 && (
-          <Animated.View
-            entering={FadeIn.delay(200).duration(400)}
-            style={{ alignItems: 'center', paddingVertical: 60, gap: 12 }}
-          >
-            <View
-              style={{
-                width: 64,
-                height: 64,
-                borderRadius: 32,
-                backgroundColor: Colors.card,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Ionicons name="star-outline" size={30} color={Colors.textSecondary} />
-            </View>
-            <Text
-              style={{
-                fontFamily: Fonts.semiBold,
-                fontSize: 17,
-                color: Colors.textPrimary,
-              }}
-            >
-              {t('favourites.emptyTitle')}
-            </Text>
-            <Text
-              style={{
-                fontFamily: Fonts.regular,
-                fontSize: 14,
-                color: Colors.textSecondary,
-                textAlign: 'center',
-                maxWidth: 280,
-              }}
-            >
-              {t('favourites.emptyMessage')}
-            </Text>
+        {showForm && (
+          <Animated.View entering={FadeInDown.duration(300)} style={styles.formCard}>
+            <Text style={styles.formTitle}>Add Favourite</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Label (e.g. Home, Work)"
+              placeholderTextColor={colors.textMuted}
+              value={label}
+              onChangeText={setLabel}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Address (optional)"
+              placeholderTextColor={colors.textMuted}
+              value={address}
+              onChangeText={setAddress}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Suburb"
+              placeholderTextColor={colors.textMuted}
+              value={suburb}
+              onChangeText={setSuburb}
+            />
+            <Pressable onPress={handleAdd} style={styles.saveBtn}>
+              <Text style={styles.saveBtnText}>Save Location</Text>
+            </Pressable>
           </Animated.View>
         )}
 
-        {/* Favourite cards */}
-        <View style={{ gap: 10 }}>
-          {favourites.map((fav, index) => (
-            <FavouriteCard
-              key={fav.id}
-              favourite={fav}
-              index={index}
-              onDelete={() => deleteFavourite(fav.id)}
-            />
-          ))}
-        </View>
-      </ScrollView>
-
-      {/* Add favourite modal */}
-      <Modal
-        visible={showAddModal}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setShowAddModal(false)}
-      >
-        <View
-          style={{
-            flex: 1,
-            backgroundColor: 'rgba(0,0,0,0.6)',
-            justifyContent: 'flex-end',
-          }}
-        >
-          <View
-            style={{
-              backgroundColor: Colors.background,
-              borderTopLeftRadius: 24,
-              borderTopRightRadius: 24,
-              borderCurve: 'continuous',
-            }}
-          >
-            {/* Handle bar */}
-            <View
-              style={{ alignItems: 'center', paddingTop: 12, paddingBottom: 8 }}
-            >
-              <View
-                style={{
-                  width: 36,
-                  height: 4,
-                  borderRadius: 2,
-                  backgroundColor: Colors.surface,
-                }}
-              />
+        <FlatList
+          data={favourites}
+          keyExtractor={(item) => item.id}
+          renderItem={renderItem}
+          contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + 100 }]}
+          showsVerticalScrollIndicator={false}
+          ItemSeparatorComponent={() => <View style={{ height: spacing.md }} />}
+          ListEmptyComponent={
+            <View style={styles.emptyState}>
+              <View style={styles.emptyIcon}>
+                <Ionicons name="star-outline" size={48} color={colors.textMuted} />
+              </View>
+              <Text style={styles.emptyTitle}>No favourites yet</Text>
+              <Text style={styles.emptySubtitle}>
+                Save locations to label your trip start and end points
+              </Text>
             </View>
-
-            <View
-              style={{ padding: 20, gap: 20, paddingBottom: insets.bottom + 20 }}
-            >
-              {/* Header */}
-              <View
-                style={{
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                }}
-              >
-                <Text
-                  style={{
-                    fontFamily: Fonts.bold,
-                    fontSize: 20,
-                    color: Colors.textPrimary,
-                  }}
-                >
-                  {t('favourites.addTitle')}
-                </Text>
-                <Pressable onPress={() => setShowAddModal(false)} hitSlop={12}>
-                  <Ionicons
-                    name="close-circle"
-                    size={28}
-                    color={Colors.textSecondary}
-                  />
-                </Pressable>
-              </View>
-
-              {/* Label selector */}
-              <View style={{ gap: 8 }}>
-                <Text
-                  style={{
-                    fontFamily: Fonts.semiBold,
-                    fontSize: 14,
-                    color: Colors.textPrimary,
-                  }}
-                >
-                  {t('favourites.label')}
-                </Text>
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    backgroundColor: Colors.surface,
-                    borderRadius: 10,
-                    borderCurve: 'continuous',
-                    padding: 3,
-                  }}
-                >
-                  {LABEL_OPTIONS.map((opt) => {
-                    const isSelected = newLabel === opt;
-                    return (
-                      <Pressable
-                        key={opt}
-                        onPress={() => setNewLabel(opt)}
-                        style={{
-                          flex: 1,
-                          paddingVertical: 9,
-                          borderRadius: 8,
-                          borderCurve: 'continuous',
-                          backgroundColor: isSelected
-                            ? Colors.primary
-                            : 'transparent',
-                          alignItems: 'center',
-                        }}
-                      >
-                        <Text
-                          style={{
-                            fontFamily: isSelected
-                              ? Fonts.semiBold
-                              : Fonts.medium,
-                            fontSize: 13,
-                            color: isSelected ? '#fff' : Colors.textSecondary,
-                          }}
-                        >
-                          {labelText(opt)}
-                        </Text>
-                      </Pressable>
-                    );
-                  })}
-                </View>
-                {newLabel === 'Custom' && (
-                  <TextInput
-                    value={customLabel}
-                    onChangeText={setCustomLabel}
-                    placeholder={t('favourites.customLabelPlaceholder')}
-                    placeholderTextColor={Colors.textSecondary}
-                    style={{
-                      backgroundColor: Colors.surface,
-                      borderRadius: 10,
-                      borderCurve: 'continuous',
-                      paddingHorizontal: 14,
-                      paddingVertical: 12,
-                      fontFamily: Fonts.medium,
-                      fontSize: 15,
-                      color: Colors.textPrimary,
-                    }}
-                  />
-                )}
-              </View>
-
-              {/* Address */}
-              <View style={{ gap: 8 }}>
-                <Text
-                  style={{
-                    fontFamily: Fonts.semiBold,
-                    fontSize: 14,
-                    color: Colors.textPrimary,
-                  }}
-                >
-                  {t('favourites.address')}
-                </Text>
-                <TextInput
-                  value={newAddress}
-                  onChangeText={setNewAddress}
-                  placeholder={t('favourites.addressPlaceholder')}
-                  placeholderTextColor={Colors.textSecondary}
-                  style={{
-                    backgroundColor: Colors.surface,
-                    borderRadius: 10,
-                    borderCurve: 'continuous',
-                    paddingHorizontal: 14,
-                    paddingVertical: 12,
-                    fontFamily: Fonts.medium,
-                    fontSize: 15,
-                    color: Colors.textPrimary,
-                  }}
-                />
-              </View>
-
-              {/* Suburb */}
-              <View style={{ gap: 8 }}>
-                <Text
-                  style={{
-                    fontFamily: Fonts.semiBold,
-                    fontSize: 14,
-                    color: Colors.textPrimary,
-                  }}
-                >
-                  {t('favourites.suburb')}
-                </Text>
-                <TextInput
-                  value={newSuburb}
-                  onChangeText={setNewSuburb}
-                  placeholder={t('favourites.suburbPlaceholder')}
-                  placeholderTextColor={Colors.textSecondary}
-                  style={{
-                    backgroundColor: Colors.surface,
-                    borderRadius: 10,
-                    borderCurve: 'continuous',
-                    paddingHorizontal: 14,
-                    paddingVertical: 12,
-                    fontFamily: Fonts.medium,
-                    fontSize: 15,
-                    color: Colors.textPrimary,
-                  }}
-                />
-              </View>
-
-              {/* Save button */}
-              <Pressable
-                onPress={handleAdd}
-                style={({ pressed }) => ({
-                  backgroundColor:
-                    newSuburb.trim() ? Colors.primary : Colors.surface,
-                  borderRadius: 14,
-                  borderCurve: 'continuous',
-                  paddingVertical: 14,
-                  alignItems: 'center',
-                  opacity: pressed ? 0.85 : 1,
-                })}
-                disabled={!newSuburb.trim()}
-              >
-                <Text
-                  style={{
-                    fontFamily: Fonts.semiBold,
-                    fontSize: 16,
-                    color: newSuburb.trim() ? '#fff' : Colors.textSecondary,
-                  }}
-                >
-                  {t('favourites.saveFavourite')}
-                </Text>
-              </Pressable>
-            </View>
-          </View>
-        </View>
-      </Modal>
-    </View>
+          }
+        />
+      </View>
+    </KeyboardAvoidingView>
   );
 }
+
+const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.md,
+  },
+  title: {
+    ...typography.largeTitle,
+    color: colors.textPrimary,
+  },
+  addBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.primary + '20',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  formCard: {
+    backgroundColor: colors.card,
+    borderRadius: radius.lg,
+    padding: spacing.xl,
+    marginHorizontal: spacing.xl,
+    marginBottom: spacing.lg,
+    gap: spacing.md,
+    borderCurve: 'continuous',
+  },
+  formTitle: {
+    ...typography.headline,
+    color: colors.textPrimary,
+  },
+  input: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    padding: spacing.lg,
+    color: colors.textPrimary,
+    ...typography.body,
+    borderCurve: 'continuous',
+  },
+  saveBtn: {
+    backgroundColor: colors.primary,
+    borderRadius: radius.md,
+    padding: spacing.lg,
+    alignItems: 'center',
+    borderCurve: 'continuous',
+  },
+  saveBtnText: {
+    ...typography.headline,
+    color: '#FFFFFF',
+  },
+  list: {
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.md,
+  },
+  deleteAction: {
+    backgroundColor: colors.danger,
+    borderRadius: radius.lg,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 70,
+    marginLeft: spacing.sm,
+    borderCurve: 'continuous',
+  },
+  emptyState: {
+    alignItems: 'center',
+    paddingVertical: spacing.xxxl * 2,
+    gap: spacing.md,
+  },
+  emptyIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.md,
+  },
+  emptyTitle: {
+    ...typography.headline,
+    color: colors.textPrimary,
+  },
+  emptySubtitle: {
+    ...typography.body,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    maxWidth: 260,
+  },
+});

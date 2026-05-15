@@ -1,521 +1,354 @@
-import { useState } from 'react';
-import { View, Text, TextInput, ScrollView, Switch, Pressable } from 'react-native';
-import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
+import React from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  Switch,
+  Pressable,
+  ScrollView,
+  Alert,
+  StyleSheet,
+  Platform,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Ionicons from '@expo/vector-icons/Ionicons';
-import { Colors } from '@/constants/Colors';
-import { Fonts } from '@/constants/Typography';
-import { useAppStore } from '@/store/useAppStore';
+import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
+import { Ionicons } from '@expo/vector-icons';
+import { useAppStore } from '@/store/app-store';
 import { SettingsSection } from '@/components/settings-section';
-import { UnitToggle } from '@/components/unit-toggle';
 import { BusinessDayRow } from '@/components/business-day-row';
-import { LegalDisclaimerModal } from '@/components/legal-disclaimer-modal';
-import { BackgroundTrackingToggle } from '@/components/background-tracking-toggle';
-import { generateCSV, exportCSV } from '@/utils/csv-export';
-import { sendFeedbackEmail } from '@/utils/feedback';
-import { useTranslation } from '@/i18n/useTranslation';
-import type { DaySchedule } from '@/store/types';
+import { DayOfWeek } from '@/store/types';
+import { colors, spacing, radius, typography } from '@/constants/theme';
+import { generateCSV } from '@/utils/csv-export';
 
-const DAY_ORDER = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const DAYS: DayOfWeek[] = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
-  const { t } = useTranslation();
   const settings = useAppStore((s) => s.settings);
-  const updateSettings = useAppStore((s) => s.updateSettings);
   const trips = useAppStore((s) => s.trips);
-  const [disclaimerVisible, setDisclaimerVisible] = useState(false);
+  const updateSettings = useAppStore((s) => s.updateSettings);
 
-  const handleDayChange = (day: string, schedule: DaySchedule) => {
-    updateSettings({
-      businessHoursPerDay: {
-        ...settings.businessHoursPerDay,
-        [day]: schedule,
-      },
-    });
+  const handleExportNow = async () => {
+    try {
+      const csv = generateCSV(trips, settings);
+
+      if (Platform.OS === 'web') {
+        Alert.alert('Export', 'CSV export is only available on mobile devices.');
+        return;
+      }
+
+      const LegacyFS = await import('expo-file-system/legacy');
+      const MailComposer = await import('expo-mail-composer');
+      const isAvailable = await MailComposer.isAvailableAsync();
+
+      if (!isAvailable) {
+        Alert.alert('Email Not Available', 'No email client is configured on this device.');
+        return;
+      }
+
+      const docDir = LegacyFS.documentDirectory;
+      if (!docDir) {
+        Alert.alert('Export Failed', 'File system not available.');
+        return;
+      }
+      const fileUri = docDir + 'mileagetrack-export.csv';
+      await LegacyFS.writeAsStringAsync(fileUri, csv);
+
+      await MailComposer.composeAsync({
+        recipients: settings.exportEmail ? [settings.exportEmail] : [],
+        subject: 'MileageTrack Export',
+        body: 'Your MileageTrack mileage export is attached.',
+        attachments: [fileUri],
+      });
+    } catch {
+      Alert.alert('Export Failed', 'Unable to export data. Please try again.');
+    }
   };
 
-  const handleExport = async () => {
-    const csv = generateCSV(trips, settings);
-    await exportCSV(csv);
+  const handleFeedback = async () => {
+    try {
+      if (Platform.OS === 'web') {
+        Alert.alert('Feedback', 'Email feedback is only available on mobile devices.');
+        return;
+      }
+      const MailComposer = await import('expo-mail-composer');
+      const isAvailable = await MailComposer.isAvailableAsync();
+      if (!isAvailable) {
+        Alert.alert('Email Not Available', 'No email client is configured on this device.');
+        return;
+      }
+      await MailComposer.composeAsync({
+        recipients: ['craig.lindeman@outlook.com'],
+        subject: 'MileageTrack Feedback',
+      });
+    } catch {
+      Alert.alert('Error', 'Unable to open email composer.');
+    }
   };
 
   return (
     <ScrollView
-      style={{ flex: 1, backgroundColor: Colors.background }}
-      contentContainerStyle={{
-        paddingTop: insets.top + 16,
-        paddingHorizontal: 20,
-        paddingBottom: insets.bottom + 40,
-        gap: 24,
-      }}
-      keyboardShouldPersistTaps="handled"
+      style={styles.scroll}
+      contentContainerStyle={[
+        styles.container,
+        { paddingTop: insets.top + spacing.lg, paddingBottom: insets.bottom + 100 },
+      ]}
+      showsVerticalScrollIndicator={false}
     >
-      {/* Header */}
       <Animated.View entering={FadeIn.duration(400)}>
-        <Text
-          style={{
-            fontFamily: Fonts.bold,
-            fontSize: 26,
-            color: Colors.textPrimary,
-            textAlign: 'center',
-          }}
-        >
-          {t('settings.title')}
-        </Text>
+        <Text style={styles.title}>Settings</Text>
       </Animated.View>
 
-      {/* User Profile */}
-      <Animated.View entering={FadeInDown.delay(100).duration(400)}>
-        <SettingsSection title={t('settings.userProfile')}>
+      {/* Profile */}
+      <Animated.View entering={FadeInDown.duration(400).delay(100)}>
+        <SettingsSection title="Profile">
           <TextInput
+            style={styles.input}
+            placeholder="Your name"
+            placeholderTextColor={colors.textMuted}
             value={settings.userName}
-            onChangeText={(txt) => updateSettings({ userName: txt })}
-            placeholder={t('settings.namePlaceholder')}
-            placeholderTextColor={Colors.textSecondary}
-            style={inputStyle}
+            onChangeText={(val) => updateSettings({ userName: val })}
           />
-          <TextInput
-            value={settings.vehicleMake}
-            onChangeText={(txt) => updateSettings({ vehicleMake: txt })}
-            placeholder={t('settings.vehicleMakePlaceholder')}
-            placeholderTextColor={Colors.textSecondary}
-            style={inputStyle}
-          />
-          <TextInput
-            value={settings.vehicleModel}
-            onChangeText={(txt) => updateSettings({ vehicleModel: txt })}
-            placeholder={t('settings.vehicleModelPlaceholder')}
-            placeholderTextColor={Colors.textSecondary}
-            style={inputStyle}
-          />
-          <TextInput
-            value={settings.vehicleYear}
-            onChangeText={(txt) => {
-              // Allow only numeric characters, max 4 digits
-              const cleaned = txt.replace(/[^0-9]/g, '').slice(0, 4);
-              updateSettings({ vehicleYear: cleaned });
-            }}
-            placeholder={t('settings.vehicleYearPlaceholder')}
-            placeholderTextColor={Colors.textSecondary}
-            keyboardType="numeric"
-            maxLength={4}
-            style={inputStyle}
-          />
-          <TextInput
-            value={settings.vehicleRegistration}
-            onChangeText={(txt) => updateSettings({ vehicleRegistration: txt })}
-            placeholder={t('settings.registrationPlaceholder')}
-            placeholderTextColor={Colors.textSecondary}
-            autoCapitalize="characters"
-            style={inputStyle}
-          />
-          <TextInput
-            value={settings.startingOdometer != null ? String(settings.startingOdometer) : ''}
-            onChangeText={(txt) => {
-              const val = parseFloat(txt);
-              updateSettings({ startingOdometer: isNaN(val) ? null : val });
-            }}
-            placeholder={t('settings.startingOdometerPlaceholder')}
-            placeholderTextColor={Colors.textSecondary}
-            keyboardType="numeric"
-            style={inputStyle}
-          />
-        </SettingsSection>
-      </Animated.View>
-
-      {/* Log all as Business toggle */}
-      <Animated.View entering={FadeInDown.delay(200).duration(400)}>
-        <View
-          style={{
-            backgroundColor: Colors.card,
-            borderRadius: 14,
-            borderCurve: 'continuous',
-            padding: 16,
-            borderWidth: 1,
-            borderColor: settings.logAllAsBusiness
-              ? `${Colors.primary}60`
-              : Colors.border,
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}
-        >
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}>
-            <Ionicons
-              name="briefcase"
-              size={18}
-              color={
-                settings.logAllAsBusiness ? Colors.primary : Colors.textSecondary
-              }
+          <View style={styles.row}>
+            <TextInput
+              style={[styles.input, { flex: 1 }]}
+              placeholder="Vehicle make"
+              placeholderTextColor={colors.textMuted}
+              value={settings.vehicleMake}
+              onChangeText={(val) => updateSettings({ vehicleMake: val })}
             />
-            <View style={{ flex: 1, gap: 2 }}>
-              <Text
-                style={{
-                  fontFamily: Fonts.medium,
-                  fontSize: 15,
-                  color: Colors.textPrimary,
-                }}
-              >
-                {t('settings.logAllTitle')}
-              </Text>
-              <Text
-                style={{
-                  fontFamily: Fonts.regular,
-                  fontSize: 12,
-                  color: Colors.textSecondary,
-                }}
-              >
-                {t('settings.logAllSubtitle')}
-              </Text>
-            </View>
+            <TextInput
+              style={[styles.input, { flex: 1 }]}
+              placeholder="Vehicle model"
+              placeholderTextColor={colors.textMuted}
+              value={settings.vehicleModel}
+              onChangeText={(val) => updateSettings({ vehicleModel: val })}
+            />
           </View>
-          <Switch
-            value={settings.logAllAsBusiness}
-            onValueChange={(val) => updateSettings({ logAllAsBusiness: val })}
-            trackColor={{ false: Colors.surface, true: Colors.primary }}
-            thumbColor="#fff"
+          <TextInput
+            style={styles.input}
+            placeholder="Starting odometer"
+            placeholderTextColor={colors.textMuted}
+            keyboardType="numeric"
+            value={settings.startingOdometer ? String(settings.startingOdometer) : ''}
+            onChangeText={(val) => updateSettings({ startingOdometer: parseInt(val) || 0 })}
           />
-        </View>
-      </Animated.View>
-
-      {/* Smart Business Classification */}
-      <Animated.View entering={FadeInDown.delay(300).duration(400)}>
-        <SettingsSection title={t('settings.smartClassification')}>
-          <Text
-            style={{
-              fontFamily: Fonts.semiBold,
-              fontSize: 14,
-              color: Colors.textPrimary,
-              marginBottom: 4,
-            }}
-          >
-            {t('settings.businessHoursSchedule')}
-          </Text>
-          {DAY_ORDER.map((day) => (
-            <BusinessDayRow
-              key={day}
-              day={day}
-              schedule={
-                settings.businessHoursPerDay[day] || {
-                  enabled: false,
-                  startTime: '09:00',
-                  endTime: '17:00',
-                }
-              }
-              onChange={(sched) => handleDayChange(day, sched)}
-            />
-          ))}
         </SettingsSection>
       </Animated.View>
 
       {/* Distance Unit */}
-      <Animated.View entering={FadeInDown.delay(400).duration(400)}>
-        <SettingsSection title={t('settings.distanceUnit')}>
-          <UnitToggle
-            value={settings.distanceUnit}
-            onChange={(unit) =>
-              // Mark as auto-detected=true so locale detection doesn't override
-              // the user's explicit selection on future launches.
-              updateSettings({ distanceUnit: unit, distanceUnitAutoDetected: true })
-            }
-          />
+      <Animated.View entering={FadeInDown.duration(400).delay(200)}>
+        <SettingsSection title="Distance Unit">
+          <View style={styles.unitToggle}>
+            <Pressable
+              onPress={() => updateSettings({ distanceUnit: 'km' })}
+              style={[
+                styles.unitBtn,
+                settings.distanceUnit === 'km' && styles.unitBtnActive,
+              ]}
+            >
+              <Text
+                style={[
+                  styles.unitBtnText,
+                  settings.distanceUnit === 'km' && styles.unitBtnTextActive,
+                ]}
+              >
+                Kilometres
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => updateSettings({ distanceUnit: 'miles' })}
+              style={[
+                styles.unitBtn,
+                settings.distanceUnit === 'miles' && styles.unitBtnActive,
+              ]}
+            >
+              <Text
+                style={[
+                  styles.unitBtnText,
+                  settings.distanceUnit === 'miles' && styles.unitBtnTextActive,
+                ]}
+              >
+                Miles
+              </Text>
+            </Pressable>
+          </View>
         </SettingsSection>
       </Animated.View>
 
-      {/* Auto Export */}
-      <Animated.View entering={FadeInDown.delay(500).duration(400)}>
-        <SettingsSection title={t('settings.autoExport')}>
+      {/* Business Hours */}
+      <Animated.View entering={FadeInDown.duration(400).delay(300)}>
+        <SettingsSection title="Business Hours">
+          {DAYS.map((day) => (
+            <BusinessDayRow key={day} day={day} config={settings.businessHoursPerDay[day]} />
+          ))}
+        </SettingsSection>
+      </Animated.View>
+
+      {/* Odometer */}
+      <Animated.View entering={FadeInDown.duration(400).delay(400)}>
+        <SettingsSection title="Odometer">
+          <View style={styles.toggleRow}>
+            <Text style={styles.toggleLabel}>Weekly odometer prompt</Text>
+            <Switch
+              value={settings.weeklyOdometerPromptEnabled}
+              onValueChange={(val) => updateSettings({ weeklyOdometerPromptEnabled: val })}
+              trackColor={{ false: colors.surface, true: colors.primary + '60' }}
+              thumbColor={settings.weeklyOdometerPromptEnabled ? colors.primary : colors.textMuted}
+            />
+          </View>
+        </SettingsSection>
+      </Animated.View>
+
+      {/* Export */}
+      <Animated.View entering={FadeInDown.duration(400).delay(500)}>
+        <SettingsSection title="Export">
           <TextInput
-            value={settings.exportEmail}
-            onChangeText={(txt) => updateSettings({ exportEmail: txt })}
-            placeholder={t('settings.emailPlaceholder')}
-            placeholderTextColor={Colors.textSecondary}
+            style={styles.input}
+            placeholder="Export email address"
+            placeholderTextColor={colors.textMuted}
             keyboardType="email-address"
             autoCapitalize="none"
-            style={inputStyle}
+            value={settings.exportEmail}
+            onChangeText={(val) => updateSettings({ exportEmail: val })}
           />
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-            }}
-          >
-            <Text
-              style={{
-                fontFamily: Fonts.medium,
-                fontSize: 15,
-                color: Colors.textPrimary,
-              }}
-            >
-              {t('settings.enableAutoExport')}
-            </Text>
+          <View style={styles.toggleRow}>
+            <Text style={styles.toggleLabel}>Auto export (30 June)</Text>
             <Switch
               value={settings.autoExportEnabled}
               onValueChange={(val) => updateSettings({ autoExportEnabled: val })}
-              trackColor={{ false: Colors.surface, true: Colors.primary }}
-              thumbColor="#fff"
+              trackColor={{ false: colors.surface, true: colors.primary + '60' }}
+              thumbColor={settings.autoExportEnabled ? colors.primary : colors.textMuted}
             />
           </View>
-          <Pressable
-            onPress={handleExport}
-            style={({ pressed }) => ({
-              backgroundColor: 'transparent',
-              borderRadius: 12,
-              borderCurve: 'continuous',
-              paddingVertical: 12,
-              alignItems: 'center',
-              borderWidth: 1,
-              borderColor: Colors.primary,
-              opacity: pressed ? 0.7 : 1,
-            })}
-          >
-            <Text
-              style={{
-                fontFamily: Fonts.semiBold,
-                fontSize: 15,
-                color: Colors.primary,
-              }}
-            >
-              {t('settings.exportToCsv')}
-            </Text>
+          <Pressable onPress={handleExportNow} style={styles.exportBtn}>
+            <Ionicons name="download-outline" size={18} color={colors.primary} />
+            <Text style={styles.exportBtnText}>Export Now</Text>
           </Pressable>
         </SettingsSection>
       </Animated.View>
 
-      {/* Weekly Odometer Prompt */}
-      <Animated.View entering={FadeInDown.delay(600).duration(400)}>
-        <View
-          style={{
-            backgroundColor: Colors.card,
-            borderRadius: 14,
-            borderCurve: 'continuous',
-            padding: 16,
-            borderWidth: 1,
-            borderColor: Colors.border,
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}
-        >
-          <View style={{ flex: 1, gap: 2 }}>
-            <Text
-              style={{
-                fontFamily: Fonts.semiBold,
-                fontSize: 15,
-                color: Colors.textPrimary,
-              }}
-            >
-              {t('settings.weeklyOdoTitle')}
-            </Text>
-            <Text
-              style={{
-                fontFamily: Fonts.regular,
-                fontSize: 12,
-                color: Colors.textSecondary,
-              }}
-            >
-              {t('settings.weeklyOdoSubtitle')}
-            </Text>
+      {/* About */}
+      <Animated.View entering={FadeInDown.duration(400).delay(600)}>
+        <SettingsSection title="About">
+          <Pressable onPress={handleFeedback} style={styles.linkRow}>
+            <Ionicons name="chatbubble-outline" size={18} color={colors.primary} />
+            <Text style={styles.linkText}>Send Feedback</Text>
+            <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
+          </Pressable>
+          <View style={styles.divider} />
+          <Pressable style={styles.linkRow}>
+            <Ionicons name="document-text-outline" size={18} color={colors.primary} />
+            <Text style={styles.linkText}>Legal</Text>
+            <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
+          </Pressable>
+          <View style={styles.divider} />
+          <View style={styles.versionRow}>
+            <Text style={styles.versionText}>MileageTrack v1.0.0</Text>
           </View>
-          <Switch
-            value={settings.weeklyOdometerPromptEnabled}
-            onValueChange={(val) =>
-              updateSettings({ weeklyOdometerPromptEnabled: val })
-            }
-            trackColor={{ false: Colors.surface, true: Colors.primary }}
-            thumbColor="#fff"
-          />
-        </View>
+        </SettingsSection>
       </Animated.View>
-
-      {/* Background GPS Tracking */}
-      <Animated.View entering={FadeInDown.delay(700).duration(400)}>
-        <BackgroundTrackingToggle />
-      </Animated.View>
-
-      {/* Manual Tracking info */}
-      <Animated.View entering={FadeInDown.delay(750).duration(400)}>
-        <View
-          style={{
-            backgroundColor: Colors.card,
-            borderRadius: 14,
-            borderCurve: 'continuous',
-            padding: 16,
-            borderWidth: 1,
-            borderColor: Colors.border,
-            gap: 12,
-          }}
-        >
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: 12,
-            }}
-          >
-            <View
-              style={{
-                width: 36,
-                height: 36,
-                borderRadius: 18,
-                backgroundColor: `${Colors.primary}20`,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Ionicons name="navigate" size={18} color={Colors.primary} />
-            </View>
-            <View style={{ flex: 1, gap: 2 }}>
-              <Text
-                style={{
-                  fontFamily: Fonts.semiBold,
-                  fontSize: 15,
-                  color: Colors.textPrimary,
-                }}
-              >
-                {t('settings.manualTitle')}
-              </Text>
-              <Text
-                style={{
-                  fontFamily: Fonts.regular,
-                  fontSize: 12,
-                  color: Colors.textSecondary,
-                }}
-              >
-                {t('settings.manualSubtitle')}
-              </Text>
-            </View>
-          </View>
-          <Text
-            style={{
-              fontFamily: Fonts.regular,
-              fontSize: 13,
-              color: Colors.textSecondary,
-              lineHeight: 18,
-            }}
-          >
-            {t('settings.manualDescription')}
-          </Text>
-        </View>
-      </Animated.View>
-
-      {/* Send Feedback */}
-      <Animated.View entering={FadeInDown.delay(780).duration(400)}>
-        <Pressable
-          onPress={sendFeedbackEmail}
-          style={({ pressed }) => ({
-            backgroundColor: Colors.card,
-            borderRadius: 14,
-            borderCurve: 'continuous',
-            padding: 16,
-            borderWidth: 1,
-            borderColor: Colors.border,
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            opacity: pressed ? 0.7 : 1,
-          })}
-        >
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 }}>
-            <View
-              style={{
-                width: 36,
-                height: 36,
-                borderRadius: 18,
-                backgroundColor: `${Colors.primary}20`,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Ionicons name="mail-outline" size={18} color={Colors.primary} />
-            </View>
-            <View style={{ flex: 1, gap: 2 }}>
-              <Text
-                style={{
-                  fontFamily: Fonts.semiBold,
-                  fontSize: 15,
-                  color: Colors.textPrimary,
-                }}
-              >
-                {t('settings.sendFeedback')}
-              </Text>
-              <Text
-                style={{
-                  fontFamily: Fonts.regular,
-                  fontSize: 12,
-                  color: Colors.textSecondary,
-                }}
-                numberOfLines={1}
-              >
-                {t('settings.feedbackSubtitle')}
-              </Text>
-            </View>
-          </View>
-          <Ionicons name="chevron-forward" size={18} color={Colors.textSecondary} />
-        </Pressable>
-      </Animated.View>
-
-      {/* Legal Disclaimer */}
-      <Animated.View entering={FadeInDown.delay(800).duration(400)}>
-        <Pressable
-          onPress={() => setDisclaimerVisible(true)}
-          style={({ pressed }) => ({
-            backgroundColor: Colors.card,
-            borderRadius: 14,
-            borderCurve: 'continuous',
-            padding: 16,
-            borderWidth: 1,
-            borderColor: Colors.border,
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            opacity: pressed ? 0.7 : 1,
-          })}
-        >
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-            <View
-              style={{
-                width: 36,
-                height: 36,
-                borderRadius: 18,
-                backgroundColor: 'rgba(148, 163, 184, 0.15)',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Ionicons name="document-text" size={18} color={Colors.textSecondary} />
-            </View>
-            <Text
-              style={{
-                fontFamily: Fonts.semiBold,
-                fontSize: 15,
-                color: Colors.textPrimary,
-              }}
-            >
-              {t('settings.legalDisclaimer')}
-            </Text>
-          </View>
-          <Ionicons name="chevron-forward" size={18} color={Colors.textSecondary} />
-        </Pressable>
-      </Animated.View>
-
-      <LegalDisclaimerModal
-        visible={disclaimerVisible}
-        onClose={() => setDisclaimerVisible(false)}
-      />
     </ScrollView>
   );
 }
 
-const inputStyle = {
-  backgroundColor: Colors.surface,
-  borderRadius: 10,
-  borderCurve: 'continuous' as const,
-  paddingHorizontal: 14,
-  paddingVertical: 12,
-  fontFamily: Fonts.medium,
-  fontSize: 15,
-  color: Colors.textPrimary,
-};
+const styles = StyleSheet.create({
+  scroll: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  container: {
+    paddingHorizontal: spacing.xl,
+    gap: spacing.xxl,
+  },
+  title: {
+    ...typography.largeTitle,
+    color: colors.textPrimary,
+    marginBottom: spacing.sm,
+  },
+  input: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    padding: spacing.lg,
+    color: colors.textPrimary,
+    ...typography.body,
+    borderCurve: 'continuous',
+  },
+  row: {
+    flexDirection: 'row',
+    gap: spacing.md,
+  },
+  unitToggle: {
+    flexDirection: 'row',
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    padding: 3,
+    borderCurve: 'continuous',
+  },
+  unitBtn: {
+    flex: 1,
+    paddingVertical: spacing.md,
+    borderRadius: radius.sm,
+    alignItems: 'center',
+    borderCurve: 'continuous',
+  },
+  unitBtnActive: {
+    backgroundColor: colors.primary,
+  },
+  unitBtnText: {
+    ...typography.callout,
+    color: colors.textSecondary,
+    fontWeight: '500',
+  },
+  unitBtnTextActive: {
+    color: '#FFFFFF',
+    fontWeight: '600',
+  },
+  toggleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: spacing.xs,
+  },
+  toggleLabel: {
+    ...typography.body,
+    color: colors.textPrimary,
+  },
+  exportBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    backgroundColor: colors.primary + '15',
+    borderRadius: radius.md,
+    padding: spacing.lg,
+    borderCurve: 'continuous',
+  },
+  exportBtnText: {
+    ...typography.headline,
+    color: colors.primary,
+  },
+  linkRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  linkText: {
+    ...typography.body,
+    color: colors.textPrimary,
+    flex: 1,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: colors.borderSubtle,
+  },
+  versionRow: {
+    paddingVertical: spacing.sm,
+    alignItems: 'center',
+  },
+  versionText: {
+    ...typography.caption,
+    color: colors.textMuted,
+  },
+});

@@ -1,12 +1,12 @@
 {
   "expo": {
-    "name": "Miletracker",
+    "name": "MileageTrack",
     "slug": "miletracker",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "fastshot",
-    "userInterfaceStyle": "light",
+    "scheme": "mileagetrack",
+    "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": false,
@@ -79,8 +79,7 @@
       ]
     ],
     "experiments": {
-      "typedRoutes": true,
-      "baseUrl": "/ecb0b3ff-c226-4b2e-96d9-32f69117089b/dev-preview/"
+      "typedRoutes": true
     },
     "owner": "craggles_86",
     "extra": {

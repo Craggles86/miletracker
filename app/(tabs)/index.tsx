@@ -1,416 +1,369 @@
-import { useEffect, useMemo, useRef } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  Pressable,
-  Alert,
-  Platform,
-  InteractionManager,
-} from 'react-native';
-import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
-import Ionicons from '@expo/vector-icons/Ionicons';
+import React, { useEffect, useMemo } from 'react';
+import { View, Text, Switch, Pressable, ScrollView, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Colors } from '@/constants/Colors';
-import { Fonts } from '@/constants/Typography';
+import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
+import { Ionicons } from '@expo/vector-icons';
+import { useAppStore } from '@/store/app-store';
+import { useLocationTracking } from '@/hooks/use-location-tracking';
+import { useNotifications } from '@/hooks/use-notifications';
 import { TripStatusRing } from '@/components/trip-status-ring';
 import { StatCard } from '@/components/stat-card';
-import { NotificationBanner } from '@/components/notification-banner';
-import { useAppStore } from '@/store/useAppStore';
-import { useLocationTracking } from '@/hooks/use-location-tracking';
-import {
-  formatDistanceValue,
-  getUnitLabel,
-  formatDistance,
-  formatDuration,
-  formatTripDateLocale,
-} from '@/utils/helpers';
-import { useTranslation } from '@/i18n/useTranslation';
+import { colors, spacing, radius, typography } from '@/constants/theme';
+import { formatDistance, formatDuration, msToKmh } from '@/utils/geo';
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
-  const { t, locale } = useTranslation();
-  const trips = useAppStore((s) => s.trips);
-  const settings = useAppStore((s) => s.settings);
-  const { isTracking, startTrip, stopTrip, starting, stopping } =
+  const { permissionStatus, isTracking, startTracking, stopTracking, requestPermissions } =
     useLocationTracking();
+  const { notifyTripStarted } = useNotifications();
 
-  const { weekTotal, monthTotal, lastTrip } = useMemo(() => {
+  const activeTrip = useAppStore((s) => s.activeTrip);
+  const trips = useAppStore((s) => s.trips);
+  const currentSpeed = useAppStore((s) => s.currentSpeed);
+  const settings = useAppStore((s) => s.settings);
+  const updateSettings = useAppStore((s) => s.updateSettings);
+  const unit = settings.distanceUnit;
+
+  const isTripActive = activeTrip !== null;
+
+  // Weekly/monthly stats
+  const { weekDistance, monthDistance } = useMemo(() => {
     const now = new Date();
     const startOfWeek = new Date(now);
     startOfWeek.setDate(now.getDate() - now.getDay());
     startOfWeek.setHours(0, 0, 0, 0);
+
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
     let week = 0;
     let month = 0;
     for (const trip of trips) {
-      const tripDate = new Date(trip.startTime);
-      if (tripDate >= startOfWeek) week += trip.distance;
-      if (tripDate >= startOfMonth) month += trip.distance;
+      if (trip.startTime >= startOfWeek.getTime()) week += trip.distance;
+      if (trip.startTime >= startOfMonth.getTime()) month += trip.distance;
     }
-
-    return {
-      weekTotal: week,
-      monthTotal: month,
-      lastTrip: trips.length > 0 ? trips[0] : null,
-    };
+    return { weekDistance: week, monthDistance: month };
   }, [trips]);
 
-  const unit = settings.distanceUnit;
+  const lastTrip = trips[0];
 
-  // After the app has rendered and the user is on the home screen, bring the
-  // background trip-detection foreground service up IF the user previously
-  // enabled it AND permissions are still granted. This is deferred with
-  // InteractionManager so nothing touches the native bridge during the first
-  // frame — that was the startup crash we're working around.
-  const bootstrapRef = useRef(false);
+  // Start tracking automatically on mount if permissions are granted
   useEffect(() => {
-    if (Platform.OS === 'web') return;
-    if (bootstrapRef.current) return;
-    bootstrapRef.current = true;
+    if (permissionStatus === 'background_granted' && !isTracking) {
+      startTracking();
+    }
+  }, [permissionStatus, isTracking, startTracking]);
 
-    console.log('[HomeScreen] scheduling background service bootstrap');
-    const handle = InteractionManager.runAfterInteractions(() => {
-      (async () => {
-        try {
-          console.log('[HomeScreen] background bootstrap starting');
-          const mod = await import('@/utils/background-tracking');
-          if (mod.isBackgroundTrackingActive()) {
-            console.log('[HomeScreen] background tracking already active');
-            return;
-          }
-
-          const wasEnabled = await mod.wasBackgroundTrackingEnabled();
-          if (!wasEnabled) {
-            console.log('[HomeScreen] background tracking was not previously enabled');
-            return;
-          }
-
-          console.log('[HomeScreen] checking background permissions');
-          const perms = await mod.checkBackgroundPermissions();
-          if (perms.foreground !== 'granted' || perms.background !== 'granted') {
-            console.log('[HomeScreen] permissions revoked, not auto-restarting');
-            return;
-          }
-          console.log('[HomeScreen] re-enabling background tracking');
-          const result = await mod.enableBackgroundTracking();
-          console.log('[HomeScreen] background tracking result:', result);
-        } catch (err) {
-          console.warn('[HomeScreen] background bootstrap failed', err);
-        }
-      })();
-    });
-
-    return () => {
-      try {
-        handle.cancel?.();
-      } catch {
-        // ignore
-      }
-    };
-  }, []);
-
-  const handleStart = async () => {
-    const ok = await startTrip();
-    if (!ok) {
-      const msg = t('home.unableToStartMessage');
-      if (Platform.OS === 'web') {
-        if (typeof window !== 'undefined') window.alert(msg);
-      } else {
-        Alert.alert(t('home.unableToStartTitle'), msg);
-      }
+  const handleTrackingToggle = async () => {
+    if (isTracking) {
+      await stopTracking();
+    } else {
+      await startTracking();
+      await notifyTripStarted();
     }
   };
 
-  const handleStop = async () => {
-    await stopTrip();
-  };
+  const needsPermission = permissionStatus === 'undetermined' || permissionStatus === 'denied';
 
   return (
     <ScrollView
-      style={{ flex: 1, backgroundColor: Colors.background }}
-      contentContainerStyle={{
-        paddingTop: insets.top + 12,
-        paddingHorizontal: 20,
-        paddingBottom: 32,
-        minHeight: '100%',
-      }}
+      style={styles.scroll}
+      contentContainerStyle={[styles.container, { paddingTop: insets.top + spacing.xl, paddingBottom: insets.bottom + 100 }]}
+      showsVerticalScrollIndicator={false}
     >
-      {/* Notification banner when tracking */}
-      <NotificationBanner
-        visible={isTracking}
-        title={t('home.bannerTripTitle')}
-        message={t('home.bannerTripMessage')}
-      />
-
       {/* Header */}
-      <Animated.View
-        entering={FadeIn.duration(400)}
-        style={{
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginTop: isTracking ? 12 : 0,
-          marginBottom: 8,
-        }}
-      >
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-          <View
-            style={{
-              width: 34,
-              height: 34,
-              borderRadius: 10,
-              borderCurve: 'continuous',
-              backgroundColor: `${Colors.primary}20`,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Ionicons name="speedometer" size={18} color={Colors.primary} />
-          </View>
-          <Text
-            style={{
-              fontFamily: Fonts.bold,
-              fontSize: 22,
-              color: Colors.textPrimary,
-            }}
-          >
-            {t('home.appName')}
-          </Text>
-        </View>
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: 6,
-            backgroundColor: isTracking
-              ? `${Colors.accent}20`
-              : `${Colors.surface}60`,
-            paddingHorizontal: 10,
-            paddingVertical: 5,
-            borderRadius: 20,
-            borderCurve: 'continuous',
-          }}
+      <Animated.View entering={FadeIn.duration(400)} style={styles.header}>
+        <Text style={styles.appTitle}>MileageTrack</Text>
+        <Pressable
+          onPress={handleTrackingToggle}
+          style={[styles.trackingBadge, isTracking && styles.trackingActive]}
         >
-          <View
-            style={{
-              width: 7,
-              height: 7,
-              borderRadius: 4,
-              backgroundColor: isTracking ? Colors.accent : Colors.textSecondary,
-            }}
-          />
-          <Text
-            style={{
-              fontFamily: Fonts.medium,
-              fontSize: 12,
-              color: isTracking ? Colors.accent : Colors.textSecondary,
-            }}
-          >
-            {isTracking ? t('home.statusTracking') : t('home.statusIdle')}
+          <View style={[styles.trackingDot, isTracking && styles.trackingDotActive]} />
+          <Text style={[styles.trackingText, isTracking && styles.trackingTextActive]}>
+            {isTracking ? 'Tracking' : 'Paused'}
           </Text>
-        </View>
+        </Pressable>
       </Animated.View>
 
-      {/* Main ring */}
-      <View
-        style={{
-          alignItems: 'center',
-          justifyContent: 'center',
-          paddingVertical: 28,
-        }}
-      >
-        <TripStatusRing />
-      </View>
-
-      {/* Start / Stop Trip button */}
-      <Animated.View
-        entering={FadeInUp.delay(150).duration(400)}
-        style={{ marginBottom: 16 }}
-      >
-        {!isTracking ? (
-          <Pressable
-            onPress={handleStart}
-            disabled={starting}
-            style={({ pressed }) => ({
-              backgroundColor: Colors.accent,
-              borderRadius: 16,
-              borderCurve: 'continuous',
-              paddingVertical: 16,
-              paddingHorizontal: 20,
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 10,
-              opacity: pressed || starting ? 0.7 : 1,
-              minHeight: 56,
-            })}
-          >
-            <Ionicons name="play" size={20} color="#fff" />
-            <Text
-              style={{
-                fontFamily: Fonts.semiBold,
-                fontSize: 16,
-                color: '#fff',
-              }}
-            >
-              {starting ? t('home.starting') : t('home.startTrip')}
-            </Text>
+      {/* Permission Banner */}
+      {needsPermission && (
+        <Animated.View entering={FadeInDown.duration(400).delay(100)}>
+          <Pressable style={styles.permissionBanner} onPress={requestPermissions}>
+            <Ionicons name="location" size={20} color={colors.warning} />
+            <View style={styles.permissionText}>
+              <Text style={styles.permissionTitle}>Location Permission Required</Text>
+              <Text style={styles.permissionSubtitle}>
+                Tap to grant background location access for automatic trip detection
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
           </Pressable>
-        ) : (
-          <Pressable
-            onPress={handleStop}
-            disabled={stopping}
-            style={({ pressed }) => ({
-              backgroundColor: Colors.danger,
-              borderRadius: 16,
-              borderCurve: 'continuous',
-              paddingVertical: 16,
-              paddingHorizontal: 20,
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 10,
-              opacity: pressed || stopping ? 0.7 : 1,
-              minHeight: 56,
-            })}
-          >
-            <Ionicons name="stop" size={20} color="#fff" />
-            <Text
-              style={{
-                fontFamily: Fonts.semiBold,
-                fontSize: 16,
-                color: '#fff',
-              }}
-            >
-              {stopping ? t('home.stopping') : t('home.stopTrip')}
-            </Text>
-          </Pressable>
-        )}
-        <Text
-          style={{
-            fontFamily: Fonts.regular,
-            fontSize: 12,
-            color: Colors.textSecondary,
-            textAlign: 'center',
-            marginTop: 8,
-          }}
-        >
-          {t('home.keepAppOpen')}
-        </Text>
-      </Animated.View>
-
-      {/* Week stat (single compact line) */}
-      <Animated.View
-        entering={FadeInUp.delay(200).duration(400)}
-        style={{ alignItems: 'center', marginBottom: 16 }}
-      >
-        <Text
-          selectable
-          style={{
-            fontFamily: Fonts.medium,
-            fontSize: 15,
-            color: Colors.textSecondary,
-            fontVariant: ['tabular-nums'],
-          }}
-        >
-          {t('home.thisWeek')}:{' '}
-          <Text style={{ color: Colors.textPrimary, fontFamily: Fonts.semiBold }}>
-            {formatDistanceValue(weekTotal, unit)} {getUnitLabel(unit)}
-          </Text>
-        </Text>
-      </Animated.View>
-
-      {/* Last trip summary (when not tracking) */}
-      {!isTracking && lastTrip && (
-        <Animated.View
-          entering={FadeInUp.delay(300).duration(400)}
-          style={{
-            backgroundColor: Colors.card,
-            borderRadius: 14,
-            borderCurve: 'continuous',
-            padding: 16,
-            borderWidth: 1,
-            borderColor: Colors.border,
-            marginBottom: 16,
-          }}
-        >
-          <Text
-            style={{
-              fontFamily: Fonts.medium,
-              fontSize: 11,
-              color: Colors.textSecondary,
-              textTransform: 'uppercase',
-              letterSpacing: 0.8,
-              marginBottom: 8,
-            }}
-          >
-            {t('home.lastTrip')}
-          </Text>
-          <Text
-            selectable
-            style={{
-              fontFamily: Fonts.semiBold,
-              fontSize: 15,
-              color: Colors.textPrimary,
-              marginBottom: 4,
-            }}
-          >
-            {lastTrip.startSuburb} → {lastTrip.endSuburb}
-          </Text>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
-            <Text
-              selectable
-              style={{
-                fontFamily: Fonts.regular,
-                fontSize: 13,
-                color: Colors.textSecondary,
-                fontVariant: ['tabular-nums'],
-              }}
-            >
-              {formatDistance(lastTrip.distance, unit)}
-            </Text>
-            <Text
-              selectable
-              style={{
-                fontFamily: Fonts.regular,
-                fontSize: 13,
-                color: Colors.textSecondary,
-                fontVariant: ['tabular-nums'],
-              }}
-            >
-              {formatDuration(lastTrip.duration)}
-            </Text>
-            <Text
-              style={{
-                fontFamily: Fonts.regular,
-                fontSize: 13,
-                color: Colors.textSecondary,
-              }}
-            >
-              {formatTripDateLocale(lastTrip.startTime, locale)}
-            </Text>
-          </View>
         </Animated.View>
       )}
 
-      {/* Week / Month stats */}
-      <View style={{ flexDirection: 'row', gap: 12, marginBottom: 16 }}>
-        <StatCard
-          label={t('home.thisWeek')}
-          value={formatDistanceValue(weekTotal, unit)}
-          unit={getUnitLabel(unit)}
-          index={0}
-        />
-        <StatCard
-          label={t('home.thisMonth')}
-          value={formatDistanceValue(monthTotal, unit)}
-          unit={getUnitLabel(unit)}
-          index={1}
-        />
-      </View>
+      {/* Status Ring */}
+      <Animated.View entering={FadeInDown.duration(500).delay(200)} style={styles.ringSection}>
+        <TripStatusRing isActive={isTripActive} />
 
+        {isTripActive ? (
+          <View style={styles.liveStats}>
+            <View style={styles.liveStat}>
+              <Text style={styles.liveValue}>
+                {formatDistance(activeTrip.distance, unit)}
+              </Text>
+              <Text style={styles.liveLabel}>{unit}</Text>
+            </View>
+            <View style={styles.liveDivider} />
+            <View style={styles.liveStat}>
+              <Text style={styles.liveValue}>
+                {formatDuration(Date.now() - activeTrip.startTime)}
+              </Text>
+              <Text style={styles.liveLabel}>duration</Text>
+            </View>
+            <View style={styles.liveDivider} />
+            <View style={styles.liveStat}>
+              <Text style={styles.liveValue}>
+                {Math.round(msToKmh(currentSpeed))}
+              </Text>
+              <Text style={styles.liveLabel}>km/h</Text>
+            </View>
+          </View>
+        ) : (
+          <Text style={styles.waitingText}>Waiting for trip...</Text>
+        )}
+      </Animated.View>
+
+      {/* Log All As Business Toggle */}
+      <Animated.View entering={FadeInDown.duration(400).delay(300)}>
+        <View style={styles.toggleCard}>
+          <View style={styles.toggleInfo}>
+            <Ionicons name="briefcase" size={20} color={colors.primary} />
+            <Text style={styles.toggleLabel}>Log all trips as Business</Text>
+          </View>
+          <Switch
+            value={settings.logAllAsBusiness}
+            onValueChange={(val) => updateSettings({ logAllAsBusiness: val })}
+            trackColor={{ false: colors.surface, true: colors.primary + '60' }}
+            thumbColor={settings.logAllAsBusiness ? colors.primary : colors.textMuted}
+          />
+        </View>
+      </Animated.View>
+
+      {/* Stats */}
+      <Animated.View entering={FadeInDown.duration(400).delay(400)} style={styles.statsRow}>
+        <StatCard
+          label="This Week"
+          value={formatDistance(weekDistance, unit)}
+          unit={unit}
+          icon="trending-up"
+          color={colors.primary}
+        />
+        <StatCard
+          label="This Month"
+          value={formatDistance(monthDistance, unit)}
+          unit={unit}
+          icon="bar-chart"
+          color={colors.accent}
+        />
+      </Animated.View>
+
+      {/* Last Trip Card */}
+      {!isTripActive && lastTrip && (
+        <Animated.View entering={FadeInDown.duration(400).delay(500)}>
+          <View style={styles.lastTripCard}>
+            <Text style={styles.lastTripTitle}>Last Trip</Text>
+            <View style={styles.lastTripDetails}>
+              <View style={styles.lastTripRoute}>
+                <Text style={styles.lastTripSuburb}>{lastTrip.startSuburb || 'Unknown'}</Text>
+                <Ionicons name="arrow-forward" size={14} color={colors.textMuted} />
+                <Text style={styles.lastTripSuburb}>{lastTrip.endSuburb || 'Unknown'}</Text>
+              </View>
+              <View style={styles.lastTripStats}>
+                <Text style={styles.lastTripStat}>
+                  {formatDistance(lastTrip.distance, unit)} {unit}
+                </Text>
+                <Text style={styles.lastTripStat}>{formatDuration(lastTrip.duration)}</Text>
+                <View style={[styles.miniPurposeBadge, { backgroundColor: lastTrip.purpose === 'Business' ? colors.primary + '20' : colors.warning + '20' }]}>
+                  <Text style={[styles.miniPurposeText, { color: lastTrip.purpose === 'Business' ? colors.primary : colors.warning }]}>
+                    {lastTrip.purpose}
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </View>
+        </Animated.View>
+      )}
     </ScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  scroll: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  container: {
+    paddingHorizontal: spacing.xl,
+    gap: spacing.xl,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  appTitle: {
+    ...typography.title,
+    color: colors.textPrimary,
+  },
+  trackingBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    backgroundColor: colors.surface,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.full,
+    borderCurve: 'continuous',
+  },
+  trackingActive: {
+    backgroundColor: colors.accent + '20',
+  },
+  trackingDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: colors.textMuted,
+  },
+  trackingDotActive: {
+    backgroundColor: colors.accent,
+  },
+  trackingText: {
+    ...typography.caption,
+    color: colors.textMuted,
+  },
+  trackingTextActive: {
+    color: colors.accent,
+  },
+  permissionBanner: {
+    backgroundColor: colors.warning + '15',
+    borderRadius: radius.lg,
+    padding: spacing.lg,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.warning + '30',
+    borderCurve: 'continuous',
+  },
+  permissionText: {
+    flex: 1,
+  },
+  permissionTitle: {
+    ...typography.callout,
+    color: colors.warning,
+    fontWeight: '600',
+  },
+  permissionSubtitle: {
+    ...typography.caption,
+    color: colors.textSecondary,
+    marginTop: 2,
+  },
+  ringSection: {
+    alignItems: 'center',
+    gap: spacing.xl,
+    paddingVertical: spacing.xl,
+  },
+  liveStats: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.lg,
+  },
+  liveStat: {
+    alignItems: 'center',
+  },
+  liveValue: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: colors.textPrimary,
+    fontVariant: ['tabular-nums'],
+  },
+  liveLabel: {
+    ...typography.caption,
+    color: colors.textSecondary,
+    marginTop: 2,
+  },
+  liveDivider: {
+    width: 1,
+    height: 30,
+    backgroundColor: colors.borderSubtle,
+  },
+  waitingText: {
+    ...typography.body,
+    color: colors.textMuted,
+  },
+  toggleCard: {
+    backgroundColor: colors.card,
+    borderRadius: radius.lg,
+    padding: spacing.lg,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderCurve: 'continuous',
+  },
+  toggleInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+  },
+  toggleLabel: {
+    ...typography.body,
+    color: colors.textPrimary,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    gap: spacing.md,
+  },
+  lastTripCard: {
+    backgroundColor: colors.card,
+    borderRadius: radius.lg,
+    padding: spacing.lg,
+    gap: spacing.md,
+    borderCurve: 'continuous',
+  },
+  lastTripTitle: {
+    ...typography.caption,
+    color: colors.textMuted,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  lastTripDetails: {
+    gap: spacing.sm,
+  },
+  lastTripRoute: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  lastTripSuburb: {
+    ...typography.body,
+    color: colors.textPrimary,
+  },
+  lastTripStats: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+  },
+  lastTripStat: {
+    ...typography.callout,
+    color: colors.textSecondary,
+  },
+  miniPurposeBadge: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+    borderRadius: radius.sm,
+    borderCurve: 'continuous',
+  },
+  miniPurposeText: {
+    ...typography.caption,
+    fontWeight: '600',
+  },
+});

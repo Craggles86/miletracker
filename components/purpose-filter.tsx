@@ -1,65 +1,66 @@
-import { View, Text, Pressable } from 'react-native';
-import { Colors } from '@/constants/Colors';
-import { Fonts } from '@/constants/Typography';
-import { useTranslation } from '@/i18n/useTranslation';
-import type { TripPurpose } from '@/store/types';
+import React from 'react';
+import { Text, Pressable, StyleSheet, ScrollView } from 'react-native';
+import { TripPurpose } from '@/store/types';
+import { colors, spacing, radius, typography } from '@/constants/theme';
 
 type FilterOption = 'All' | TripPurpose;
 
 interface PurposeFilterProps {
   selected: FilterOption;
-  onChange: (filter: FilterOption) => void;
+  onSelect: (option: FilterOption) => void;
 }
 
-export function PurposeFilter({ selected, onChange }: PurposeFilterProps) {
-  const { t } = useTranslation();
-  const options: FilterOption[] = ['All', 'Business', 'Personal'];
+const OPTIONS: FilterOption[] = ['All', 'Business', 'Personal'];
 
-  const labelFor = (opt: FilterOption) => {
-    if (opt === 'All') return t('trips.filterAll');
-    if (opt === 'Business') return t('trips.filterBusiness');
-    return t('trips.filterPersonal');
-  };
-
+export function PurposeFilter({ selected, onSelect }: PurposeFilterProps) {
   return (
-    <View
-      style={{
-        flexDirection: 'row',
-        backgroundColor: Colors.surface,
-        borderRadius: 10,
-        borderCurve: 'continuous',
-        padding: 3,
-      }}
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      style={{ flexGrow: 0 }}
+      contentContainerStyle={styles.container}
     >
-      {options.map((option) => {
+      {OPTIONS.map((option) => {
         const isSelected = selected === option;
         return (
           <Pressable
             key={option}
-            onPress={() => onChange(option)}
-            style={{
-              flex: 1,
-              paddingVertical: 8,
-              borderRadius: 8,
-              borderCurve: 'continuous',
-              backgroundColor: isSelected ? Colors.primary : 'transparent',
-              alignItems: 'center',
-            }}
+            onPress={() => onSelect(option)}
+            style={[styles.chip, isSelected && styles.chipActive]}
           >
-            <Text
-              style={{
-                fontFamily: isSelected ? Fonts.semiBold : Fonts.medium,
-                fontSize: 13,
-                color: isSelected ? '#fff' : Colors.textSecondary,
-              }}
-            >
-              {labelFor(option)}
+            <Text style={[styles.chipText, isSelected && styles.chipTextActive]}>
+              {option}
             </Text>
           </Pressable>
         );
       })}
-    </View>
+    </ScrollView>
   );
 }
 
-export type { FilterOption };
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    paddingHorizontal: spacing.xl,
+  },
+  chip: {
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.full,
+    backgroundColor: colors.surface,
+    borderCurve: 'continuous',
+  },
+  chipActive: {
+    backgroundColor: colors.primary,
+  },
+  chipText: {
+    ...typography.callout,
+    color: colors.textSecondary,
+    fontWeight: '500',
+  },
+  chipTextActive: {
+    color: '#FFFFFF',
+    fontWeight: '600',
+  },
+});

@@ -1,6 +1,6 @@
-import { View, Text } from 'react-native';
-import { Colors } from '@/constants/Colors';
-import { Fonts } from '@/constants/Typography';
+import React from 'react';
+import { View, Text, StyleSheet } from 'react-native';
+import { colors, spacing, radius, typography } from '@/constants/theme';
 
 interface SettingsSectionProps {
   title: string;
@@ -9,29 +9,29 @@ interface SettingsSectionProps {
 
 export function SettingsSection({ title, children }: SettingsSectionProps) {
   return (
-    <View style={{ gap: 12 }}>
-      <Text
-        style={{
-          fontFamily: Fonts.semiBold,
-          fontSize: 16,
-          color: Colors.textPrimary,
-        }}
-      >
-        {title}
-      </Text>
-      <View
-        style={{
-          backgroundColor: Colors.card,
-          borderRadius: 14,
-          borderCurve: 'continuous',
-          padding: 16,
-          borderWidth: 1,
-          borderColor: Colors.border,
-          gap: 16,
-        }}
-      >
-        {children}
-      </View>
+    <View style={styles.section}>
+      <Text style={styles.title}>{title}</Text>
+      <View style={styles.content}>{children}</View>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  section: {
+    gap: spacing.md,
+  },
+  title: {
+    ...typography.caption,
+    color: colors.textMuted,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    paddingHorizontal: spacing.xs,
+  },
+  content: {
+    backgroundColor: colors.card,
+    borderRadius: radius.lg,
+    padding: spacing.lg,
+    gap: spacing.md,
+    borderCurve: 'continuous',
+  },
+});

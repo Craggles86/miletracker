@@ -1,46 +1,51 @@
-/**
- * MileageTrack — Data model types
- */
-
-export type TripPurpose = 'Business' | 'Personal';
-
-export interface LatLng {
+export interface RoutePoint {
   lat: number;
   lng: number;
 }
 
+export type TripPurpose = 'Business' | 'Personal';
+
 export interface Trip {
   id: string;
-  startTime: string;
-  endTime: string;
+  startTime: number;
+  endTime: number;
   startSuburb: string;
   endSuburb: string;
-  distance: number; // km, may be scaled
-  rawDistance: number; // original GPS distance
-  duration: number; // seconds
+  distance: number;
+  rawDistance: number;
+  duration: number;
   purpose: TripPurpose;
-  routePoints: LatLng[];
-  weekId: string; // e.g. "2026-W14"
-  scalingFactor: number; // default 1.0
-  createdAt: string;
-}
-
-export interface ActiveTrip {
-  isTracking: boolean;
-  startTime: string;
-  currentDistance: number;
-  currentSpeed: number;
-  lastPosition: LatLng | null;
-  routePoints: LatLng[];
-  stationaryStartTime: string | null;
-  stationaryPosition: LatLng | null;
-}
-
-export interface OdometerRecord {
+  routePoints: RoutePoint[];
   weekId: string;
-  odometerReading: number;
-  recordedAt: string;
-  scalingApplied: boolean;
+  scalingFactor: number;
+  createdAt: number;
+}
+
+export interface BusinessHours {
+  enabled: boolean;
+  startTime: string; // "HH:mm" format
+  endTime: string;
+}
+
+export type DayOfWeek = 'Mon' | 'Tue' | 'Wed' | 'Thu' | 'Fri' | 'Sat' | 'Sun';
+
+export type BusinessHoursPerDay = Record<DayOfWeek, BusinessHours>;
+
+export type DistanceUnit = 'km' | 'miles';
+
+export interface Settings {
+  userName: string;
+  vehicleMake: string;
+  vehicleModel: string;
+  distanceUnit: DistanceUnit;
+  businessHoursPerDay: BusinessHoursPerDay;
+  logAllAsBusiness: boolean;
+  weeklyOdometerPromptEnabled: boolean;
+  lastOdometerReading: number;
+  lastOdometerWeekId: string;
+  startingOdometer: number;
+  exportEmail: string;
+  autoExportEnabled: boolean;
 }
 
 export interface FavouriteLocation {
@@ -50,36 +55,20 @@ export interface FavouriteLocation {
   suburb: string;
   lat: number;
   lng: number;
-  createdAt: string;
+  createdAt: number;
 }
 
-export interface DaySchedule {
-  enabled: boolean;
-  startTime: string; // "HH:mm"
-  endTime: string;   // "HH:mm"
+export interface OdometerRecord {
+  weekId: string;
+  odometerReading: number;
+  recordedAt: number;
+  scalingApplied: boolean;
 }
 
-export type BusinessHoursPerDay = {
-  [day: string]: DaySchedule;
-};
-
-export interface Settings {
-  userName: string;
-  vehicleMake: string;
-  vehicleModel: string;
-  vehicleYear: string;
-  vehicleRegistration: string;
-  distanceUnit: 'km' | 'miles';
-  businessHoursPerDay: BusinessHoursPerDay;
-  logAllAsBusiness: boolean;
-  weeklyOdometerPromptEnabled: boolean;
-  lastOdometerReading: number | null;
-  lastOdometerWeekId: string | null;
-  startingOdometer: number | null;
-  exportEmail: string;
-  autoExportEnabled: boolean;
-  financialYearType: 'AU' | 'calendar';
-  // True once the app has applied a locale-derived default distance unit. This
-  // prevents the auto-detect logic from ever overriding a manual user choice.
-  distanceUnitAutoDetected: boolean;
+export interface ActiveTrip {
+  startTime: number;
+  routePoints: RoutePoint[];
+  distance: number;
+  lastMovementTime: number;
+  startSuburb: string;
 }

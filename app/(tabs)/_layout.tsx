@@ -1,57 +1,53 @@
-import { Tabs } from 'expo-router';
-import Ionicons from '@expo/vector-icons/Ionicons';
-import { Colors } from '@/constants/Colors';
-import { Fonts } from '@/constants/Typography';
+import React from 'react';
+import { Tabs } from 'expo-router/tabs';
+import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useTranslation } from '@/i18n/useTranslation';
+import { colors } from '@/constants/theme';
 
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
-  const { t } = useTranslation();
 
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: Colors.primary,
-        tabBarInactiveTintColor: Colors.inactiveTint,
-        tabBarLabelStyle: {
-          fontFamily: Fonts.medium,
-          fontSize: 11,
-        },
         tabBarStyle: {
-          backgroundColor: Colors.tabBarBg,
-          borderTopColor: Colors.tabBarBorder,
-          borderTopWidth: 1,
-          paddingBottom: insets.bottom > 0 ? insets.bottom : 8,
-          paddingTop: 6,
-          height: insets.bottom > 0 ? 60 + insets.bottom : 68,
+          backgroundColor: colors.card,
+          borderTopColor: colors.borderSubtle,
+          borderTopWidth: 0.5,
+          paddingBottom: insets.bottom,
+          height: 60 + insets.bottom,
+        },
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.textMuted,
+        tabBarLabelStyle: {
+          fontSize: 11,
+          fontWeight: '500',
         },
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
-          title: t('tabs.home'),
+          title: 'Home',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="home" size={size} color={color} />
+            <Ionicons name="car-sport" size={size} color={color} />
           ),
         }}
       />
       <Tabs.Screen
         name="trips"
         options={{
-          title: t('tabs.trips'),
-          headerShown: false,
+          title: 'Trips',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="car" size={size} color={color} />
+            <Ionicons name="list" size={size} color={color} />
           ),
         }}
       />
       <Tabs.Screen
         name="favourites"
         options={{
-          title: t('tabs.favourites'),
+          title: 'Favourites',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="star" size={size} color={color} />
           ),
@@ -60,9 +56,9 @@ export default function TabLayout() {
       <Tabs.Screen
         name="settings"
         options={{
-          title: t('tabs.settings'),
+          title: 'Settings',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="settings" size={size} color={color} />
+            <Ionicons name="settings-outline" size={size} color={color} />
           ),
         }}
       />
