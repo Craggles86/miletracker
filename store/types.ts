@@ -47,7 +47,6 @@ export interface Settings {
   exportEmail: string;
   autoExportEnabled: boolean;
   autoDetectEnabled: boolean;
-  hasAcceptedTerms: boolean;
 }
 
 export interface FavouriteLocation {

@@ -11,7 +11,6 @@ import {
   Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppStore } from '@/store/app-store';
@@ -25,7 +24,6 @@ const DAYS: DayOfWeek[] = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
-  const router = useRouter();
   const settings = useAppStore((s) => s.settings);
   const trips = useAppStore((s) => s.trips);
   const updateSettings = useAppStore((s) => s.updateSettings);
@@ -239,12 +237,6 @@ export default function SettingsScreen() {
           <Pressable onPress={handleFeedback} style={styles.linkRow}>
             <Ionicons name="chatbubble-outline" size={18} color={colors.primary} />
             <Text style={styles.linkText}>Send Feedback</Text>
-            <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
-          </Pressable>
-          <View style={styles.divider} />
-          <Pressable style={styles.linkRow} onPress={() => router.push('/legal')}>
-            <Ionicons name="document-text-outline" size={18} color={colors.primary} />
-            <Text style={styles.linkText}>Legal</Text>
             <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
           </Pressable>
           <View style={styles.divider} />

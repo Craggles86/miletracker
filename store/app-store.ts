@@ -38,7 +38,6 @@ const DEFAULT_SETTINGS: Settings = {
   exportEmail: '',
   autoExportEnabled: false,
   autoDetectEnabled: false,
-  hasAcceptedTerms: false,
 };
 
 // Thresholds for trip detection
