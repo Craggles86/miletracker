@@ -11,6 +11,7 @@ import {
   Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppStore } from '@/store/app-store';
@@ -24,6 +25,7 @@ const DAYS: DayOfWeek[] = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const settings = useAppStore((s) => s.settings);
   const trips = useAppStore((s) => s.trips);
   const updateSettings = useAppStore((s) => s.updateSettings);
@@ -197,6 +199,9 @@ export default function SettingsScreen() {
               thumbColor={settings.weeklyOdometerPromptEnabled ? colors.primary : colors.textMuted}
             />
           </View>
+          <Text style={styles.odometerHint}>
+            Recommended for accurate mileage records. Weekly readings help calibrate GPS distance against your actual odometer.
+          </Text>
         </SettingsSection>
       </Animated.View>
 
@@ -237,7 +242,7 @@ export default function SettingsScreen() {
             <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
           </Pressable>
           <View style={styles.divider} />
-          <Pressable style={styles.linkRow}>
+          <Pressable style={styles.linkRow} onPress={() => router.push('/legal')}>
             <Ionicons name="document-text-outline" size={18} color={colors.primary} />
             <Text style={styles.linkText}>Legal</Text>
             <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
@@ -313,6 +318,12 @@ const styles = StyleSheet.create({
   toggleLabel: {
     ...typography.body,
     color: colors.textPrimary,
+  },
+  odometerHint: {
+    ...typography.caption,
+    color: colors.textMuted,
+    lineHeight: 16,
+    paddingTop: spacing.xs,
   },
   exportBtn: {
     flexDirection: 'row',

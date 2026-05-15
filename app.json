@@ -17,7 +17,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#1C2B33"
       },
       "edgeToEdgeEnabled": true,
       "package": "com.craggles.miletracker",
