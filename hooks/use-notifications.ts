@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
 import { Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
 
@@ -13,7 +13,12 @@ Notifications.setNotificationHandler({
   }),
 });
 
+// Persistent notification identifier for monitoring state
+const MONITORING_NOTIFICATION_ID = 'mileagetrack-monitoring';
+
 export function useNotifications() {
+  const isMonitoringRef = useRef(false);
+
   useEffect(() => {
     if (Platform.OS === 'web') return;
 
@@ -28,6 +33,39 @@ export function useNotifications() {
       }
     };
     setup();
+  }, []);
+
+  const showMonitoringNotification = useCallback(async () => {
+    if (Platform.OS === 'web') return;
+    if (isMonitoringRef.current) return;
+
+    try {
+      await Notifications.scheduleNotificationAsync({
+        identifier: MONITORING_NOTIFICATION_ID,
+        content: {
+          title: 'MileageTrack Active',
+          body: 'Monitoring for trips — auto-detection is on',
+          sticky: false, // user-dismissible
+          autoDismiss: false,
+        },
+        trigger: null,
+      });
+      isMonitoringRef.current = true;
+    } catch {
+      // Non-critical — auto-detect still works without the notification
+    }
+  }, []);
+
+  const dismissMonitoringNotification = useCallback(async () => {
+    if (Platform.OS === 'web') return;
+    if (!isMonitoringRef.current) return;
+
+    try {
+      await Notifications.dismissNotificationAsync(MONITORING_NOTIFICATION_ID);
+      isMonitoringRef.current = false;
+    } catch {
+      isMonitoringRef.current = false;
+    }
   }, []);
 
   const notifyTripStarted = useCallback(async () => {
@@ -60,5 +98,10 @@ export function useNotifications() {
     }
   }, []);
 
-  return { notifyTripStarted, notifyTripEnded };
+  return {
+    notifyTripStarted,
+    notifyTripEnded,
+    showMonitoringNotification,
+    dismissMonitoringNotification,
+  };
 }

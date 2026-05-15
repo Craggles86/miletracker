@@ -37,6 +37,7 @@ const DEFAULT_SETTINGS: Settings = {
   startingOdometer: 0,
   exportEmail: '',
   autoExportEnabled: false,
+  autoDetectEnabled: false,
 };
 
 // Thresholds for trip detection

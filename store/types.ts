@@ -46,6 +46,7 @@ export interface Settings {
   startingOdometer: number;
   exportEmail: string;
   autoExportEnabled: boolean;
+  autoDetectEnabled: boolean;
 }
 
 export interface FavouriteLocation {

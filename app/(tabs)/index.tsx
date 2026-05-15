@@ -5,6 +5,7 @@ import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppStore } from '@/store/app-store';
 import { useLocationTracking } from '@/hooks/use-location-tracking';
+import { useAutoTripDetection } from '@/hooks/use-auto-trip-detection';
 import { TripStatusRing } from '@/components/trip-status-ring';
 import { StatCard } from '@/components/stat-card';
 import { colors, spacing, radius, typography } from '@/constants/theme';
@@ -14,6 +15,7 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const { permissionStatus, isTracking, isStarting, startTracking, stopTracking, requestPermissions } =
     useLocationTracking();
+  useAutoTripDetection();
 
   const activeTrip = useAppStore((s) => s.activeTrip);
   const trips = useAppStore((s) => s.trips);
@@ -119,7 +121,11 @@ export default function HomeScreen() {
           </View>
         ) : (
           <Text style={styles.waitingText}>
-            {isTracking ? 'Waiting for movement...' : 'Tap Start Trip to begin'}
+            {isTracking
+              ? 'Waiting for movement...'
+              : settings.autoDetectEnabled
+                ? 'Auto-detect active — waiting for movement...'
+                : 'Tap Start Trip to begin'}
           </Text>
         )}
       </Animated.View>
@@ -148,8 +154,43 @@ export default function HomeScreen() {
         )}
       </Animated.View>
 
-      {/* Log All As Business Toggle */}
+      {/* Auto-Detect Toggle */}
       <Animated.View entering={FadeInDown.duration(400).delay(300)}>
+        <View style={styles.autoDetectCard}>
+          <View style={styles.autoDetectHeader}>
+            <View style={styles.toggleInfo}>
+              <View style={[styles.autoDetectIcon, settings.autoDetectEnabled && styles.autoDetectIconActive]}>
+                <Ionicons name="navigate" size={16} color={settings.autoDetectEnabled ? '#FFFFFF' : colors.textMuted} />
+              </View>
+              <View style={styles.autoDetectText}>
+                <Text style={styles.toggleLabel}>Auto-Detect Trips</Text>
+                <Text style={styles.autoDetectSubtext}>
+                  {settings.autoDetectEnabled
+                    ? 'Monitoring for movement > 10 km/h'
+                    : 'Start trips automatically when driving'}
+                </Text>
+              </View>
+            </View>
+            <Switch
+              value={settings.autoDetectEnabled}
+              onValueChange={(val) => updateSettings({ autoDetectEnabled: val })}
+              trackColor={{ false: colors.surface, true: colors.accent + '60' }}
+              thumbColor={settings.autoDetectEnabled ? colors.accent : colors.textMuted}
+            />
+          </View>
+          {settings.autoDetectEnabled && (
+            <View style={styles.autoDetectInfo}>
+              <Ionicons name="information-circle-outline" size={14} color={colors.textMuted} />
+              <Text style={styles.autoDetectInfoText}>
+                Trips auto-start at 10 km/h and end after 5 min stationary. Works while app is open.
+              </Text>
+            </View>
+          )}
+        </View>
+      </Animated.View>
+
+      {/* Log All As Business Toggle */}
+      <Animated.View entering={FadeInDown.duration(400).delay(350)}>
         <View style={styles.toggleCard}>
           <View style={styles.toggleInfo}>
             <Ionicons name="briefcase" size={20} color={colors.primary} />
@@ -165,7 +206,7 @@ export default function HomeScreen() {
       </Animated.View>
 
       {/* Stats */}
-      <Animated.View entering={FadeInDown.duration(400).delay(400)} style={styles.statsRow}>
+      <Animated.View entering={FadeInDown.duration(400).delay(450)} style={styles.statsRow}>
         <StatCard
           label="This Week"
           value={formatDistance(weekDistance, unit)}
@@ -184,7 +225,7 @@ export default function HomeScreen() {
 
       {/* Last Trip Card */}
       {!isTripActive && lastTrip && (
-        <Animated.View entering={FadeInDown.duration(400).delay(500)}>
+        <Animated.View entering={FadeInDown.duration(400).delay(550)}>
           <View style={styles.lastTripCard}>
             <Text style={styles.lastTripTitle}>Last Trip</Text>
             <View style={styles.lastTripDetails}>
@@ -336,6 +377,51 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '700',
     color: '#FFFFFF',
+  },
+  autoDetectCard: {
+    backgroundColor: colors.card,
+    borderRadius: radius.lg,
+    padding: spacing.lg,
+    gap: spacing.md,
+    borderCurve: 'continuous',
+  },
+  autoDetectHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  autoDetectIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  autoDetectIconActive: {
+    backgroundColor: colors.accent,
+  },
+  autoDetectText: {
+    flex: 1,
+    gap: 2,
+  },
+  autoDetectSubtext: {
+    ...typography.caption,
+    color: colors.textMuted,
+  },
+  autoDetectInfo: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.sm,
+    paddingTop: spacing.sm,
+    borderTopWidth: 0.5,
+    borderTopColor: colors.borderSubtle,
+  },
+  autoDetectInfoText: {
+    ...typography.caption,
+    color: colors.textMuted,
+    flex: 1,
+    lineHeight: 16,
   },
   toggleCard: {
     backgroundColor: colors.card,
