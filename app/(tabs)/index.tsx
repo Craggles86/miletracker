@@ -130,29 +130,31 @@ export default function HomeScreen() {
         )}
       </Animated.View>
 
-      {/* Start / Stop Trip Button */}
-      <Animated.View entering={FadeInDown.duration(400).delay(250)}>
-        {!isTracking ? (
-          <Pressable
-            style={[styles.actionButton, styles.startButton]}
-            onPress={handleStartTrip}
-            disabled={isStarting}
-          >
-            <Ionicons name="play" size={22} color="#FFFFFF" />
-            <Text style={styles.actionButtonText}>
-              {isStarting ? 'Starting...' : 'Start Trip'}
-            </Text>
-          </Pressable>
-        ) : (
-          <Pressable
-            style={[styles.actionButton, styles.stopButton]}
-            onPress={handleStopTrip}
-          >
-            <Ionicons name="stop" size={22} color="#FFFFFF" />
-            <Text style={styles.actionButtonText}>Stop Trip</Text>
-          </Pressable>
-        )}
-      </Animated.View>
+      {/* Start / Stop Trip Button — hidden when auto-detect is on (unless a trip is active) */}
+      {(!settings.autoDetectEnabled || isTracking) && (
+        <Animated.View entering={FadeInDown.duration(400).delay(250)}>
+          {!isTracking ? (
+            <Pressable
+              style={[styles.actionButton, styles.startButton]}
+              onPress={handleStartTrip}
+              disabled={isStarting}
+            >
+              <Ionicons name="play" size={22} color="#FFFFFF" />
+              <Text style={styles.actionButtonText}>
+                {isStarting ? 'Starting...' : 'Start Trip'}
+              </Text>
+            </Pressable>
+          ) : (
+            <Pressable
+              style={[styles.actionButton, styles.stopButton]}
+              onPress={handleStopTrip}
+            >
+              <Ionicons name="stop" size={22} color="#FFFFFF" />
+              <Text style={styles.actionButtonText}>Stop Trip</Text>
+            </Pressable>
+          )}
+        </Animated.View>
+      )}
 
       {/* Auto-Detect Toggle */}
       <Animated.View entering={FadeInDown.duration(400).delay(300)}>
@@ -436,6 +438,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
+    flex: 1,
   },
   toggleLabel: {
     ...typography.body,
