@@ -83,6 +83,7 @@ interface AppState {
   setShowOdometerModal: (show: boolean) => void;
   setIsTracking: (tracking: boolean) => void;
   getMatchingFavourite: (lat: number, lng: number) => FavouriteLocation | null;
+  updateTripSuburbs: (id: string, startSuburb: string, endSuburb: string) => void;
 }
 
 export const useAppStore = create<AppState>()(
@@ -328,6 +329,22 @@ export const useAppStore = create<AppState>()(
 
       setShowOdometerModal: (show) => set({ showOdometerModal: show }),
       setIsTracking: (tracking) => set({ isTracking: tracking }),
+
+      updateTripSuburbs: (id, startSuburb, endSuburb) => {
+        const { trips } = get();
+        set({
+          trips: trips.map((t) =>
+            t.id === id
+              ? {
+                  ...t,
+                  startSuburb: startSuburb || t.startSuburb,
+                  endSuburb: endSuburb || t.endSuburb,
+                }
+              : t
+          ),
+        });
+      },
+
 
       getMatchingFavourite: (lat, lng) => {
         const { favourites } = get();
