@@ -23,7 +23,9 @@
       "package": "com.craggles.miletracker",
       "permissions": [
         "ACCESS_COARSE_LOCATION",
-        "ACCESS_FINE_LOCATION"
+        "ACCESS_FINE_LOCATION",
+        "FOREGROUND_SERVICE",
+        "FOREGROUND_SERVICE_LOCATION"
       ]
     },
     "web": {
@@ -53,11 +55,11 @@
         {
           "color": "#ffffff"
         }
-      ]
+      ],
+      "./node_modules/expo-foreground-actions/plugins/expo-foreground-actions.js"
     ],
     "experiments": {
-      "typedRoutes": true,
-      "baseUrl": "/ecb0b3ff-c226-4b2e-96d9-32f69117089b/dev-preview/"
+      "typedRoutes": true
     },
     "owner": "craggles_86",
     "extra": {

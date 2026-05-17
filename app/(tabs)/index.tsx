@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAppStore } from '@/store/app-store';
 import { useLocationTracking } from '@/hooks/use-location-tracking';
 import { useAutoTripDetection } from '@/hooks/use-auto-trip-detection';
+import { useForegroundService } from '@/hooks/use-foreground-service';
 import { useReverseGeocoding } from '@/hooks/use-reverse-geocoding';
 import { TripStatusRing } from '@/components/trip-status-ring';
 import { StatCard } from '@/components/stat-card';
@@ -17,6 +18,7 @@ export default function HomeScreen() {
   const { permissionStatus, isTracking, isStarting, startTracking, stopTracking, requestPermissions } =
     useLocationTracking();
   useAutoTripDetection();
+  useForegroundService();
   useReverseGeocoding();
 
   const activeTrip = useAppStore((s) => s.activeTrip);
